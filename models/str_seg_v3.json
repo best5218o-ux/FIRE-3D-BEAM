@@ -1,0 +1,28 @@
+{
+ "classes": [
+  "bg",
+  "wall",
+  "window",
+  "door"
+ ],
+ "input": "gray 0..1 (white=1), [1,1,H,W], H,W multiple of 32",
+ "work_dpi": 74.28,
+ "note": "AI허브 건축 도면 데이터 STR 라벨로 학습(로컬 전용 자료). 작업 해상도 ≈74dpi (1/100 도면 1 m ≈ 29 px)",
+ "params": 1118792,
+ "ckpt": "best.pt",
+ "step": 1525,
+ "train_minutes": 36.2,
+ "dev_val": {
+  "wall": 0.7579,
+  "window": 0.8103,
+  "door": 0.7769,
+  "mean": 0.7817,
+  "step": 1525,
+  "min": 36.2,
+  "nval": 50,
+  "ntrain": 2486
+ },
+ "onnx_vs_torch_maxabs": 7.323920726776123e-06,
+ "size_mb": 4.49,
+ "created": "2026-09-30 04:54"
+}

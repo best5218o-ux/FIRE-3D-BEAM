@@ -1,0 +1,96 @@
+{
+ "classes": [
+  "bg",
+  "wall",
+  "window",
+  "door"
+ ],
+ "input": "gray 0..1 (white=1), [1,1,H,W], H,W multiple of 32",
+ "work_dpi": 74.28,
+ "note": "AI허브 건축 도면 데이터 STR 라벨로 학습(로컬 전용 자료). 작업 해상도 ≈74dpi (1/100 도면 1 m ≈ 29 px)",
+ "params": 4459116,
+ "ckpt": "best.pt",
+ "step": 25024,
+ "train_minutes": 149.9,
+ "dev_val": {
+  "wall": 0.8155,
+  "window": 0.8526,
+  "door": 0.849,
+  "mean": 0.839,
+  "step": 25024,
+  "min": 149.9,
+  "nval": 150,
+  "ntrain": 5998
+ },
+ "onnx_vs_torch_maxabs": 1.049041748046875e-05,
+ "size_mb": 17.84,
+ "created": "2026-09-30 09:15",
+ "version": "gpu (Colab T4, 2026-09-30) — 기본 모델. 이전 v3 = str_seg_v3.onnx",
+ "channels": [
+  24,
+  48,
+  80,
+  128,
+  192,
+  256
+ ],
+ "vec_param": {
+  "dx": -0.25,
+  "dy": -0.25,
+  "tadd": 0.25,
+  "nf": 1.0
+ },
+ "vec_param_note": "dev-val 254장에서만 선택(평가 해상도 직접 그리기): 기본 VEC_PARAM 벽 IoU .783 → .799. dx·dy = 모델 벽이 라벨보다 ≈0.25 작업px 오른쪽·아래(≈0.9 cm), tadd = 두께 +0.25 px, nf 궤적 최소 길이 1.0t",
+ "tile": 1024,
+ "tile_note": "겹침 타일 1024(1536 이면 추론 메모리 ≈4.9 GB·26 s/도면, 1024 이면 ≈1.9 GB·13 s — 라벨 일치 99.95%)",
+ "xcheck_coef": {
+  "rule_only": [
+   5.592,
+   -16.709,
+   -7.03,
+   -1.362,
+   0.532
+  ],
+  "model_only": [
+   -5.474,
+   8.376,
+   23.538,
+   -5.567,
+   -2.149
+  ],
+  "door": [
+   -15.448,
+   18.171,
+   1.284,
+   -1.688,
+   0.935
+  ]
+ },
+ "xcheck_coef_note": "firebim/xcheck 의심도 로지스틱 계수 — 이 모델 출력으로 data/ 에서만 맞춤(python -m evalr.xcheck_eval --fit data out_fit)",
+ "held674": {
+  "pix_iou": {
+   "wall": 0.819,
+   "door": 0.856,
+   "window": 0.833
+  },
+  "vec_wall_iou": 0.791,
+  "vec_wall_iou_legacy_nn": 0.696,
+  "centerline_rp": [
+   0.978,
+   0.971
+  ],
+  "door_rp": [
+   0.953,
+   0.953
+  ],
+  "window_rp": [
+   0.966,
+   0.969
+  ],
+  "v3_same_eval": {
+   "pix_wall": 0.709,
+   "vec_wall_iou": 0.68,
+   "vec_wall_iou_legacy_nn": 0.719
+  }
+ }
+}

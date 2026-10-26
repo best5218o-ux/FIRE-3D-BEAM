@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+# 내부 PC(Windows x64, Python 3.11) 런타임 — 개발 PC에서 시험한 버전으로 고정. playwright·node·torch·LibreOffice 는 필요 없음.
+# build_bundle.sh 가 이 목록으로 win_amd64 휠을 wheelhouse/ 에 받고, install.bat 가 --no-index 로 설치한다.
+# 목록 근거 = 실행 코드(firebim/ review/ offline/launch.py build_viewer.py run_all.py evalr/{score,card_eval,evac_score,xcheck_eval}.py)의 import.
+#   synth/(가상 생성: python-docx·playwright·LibreOffice), strseg/·evalr/*_train(학습: torch)은 내부 PC 에서 쓰지 않음.
+#   OCR 은 pytesseract 없이 tesseract.exe 를 직접 부름(firebim/vision·realsym·sitemap·realplan) → pytesseract 제외.
+pymupdf==1.28.2
+opencv-python-headless==4.13.0.92
+numpy==2.4.4
+shapely==2.1.2
+pillow==12.2.0
+ifcopenshell==0.8.5
+# 분할 모델(models/str_seg.onnx 교차검증, spa_seg.onnx) 추론 — torch 불필요
+onnxruntime==1.25.0
+# 대피로·진입로 최단경로(firebim/evac.py: skimage.graph.MCP_Geometric) — 없으면 대피로 절이 통째로 빠짐
+scikit-image==0.26.0
+# 간접 의존성(고정)
+scipy==1.17.1
+networkx==3.6.1
+imageio==2.37.3
+tifffile==2026.3.3
+lazy_loader==0.5
+flatbuffers==25.12.19
+protobuf==7.34.1
+isodate==0.7.2
+lark==1.3.1
+python-dateutil==2.9.0.post0
+six==1.17.0
+typing_extensions==4.15.0
+packaging==26.1
+# msvcp140.dll 등 VC++ 런타임(ifcopenshell·pymupdf·onnxruntime 필요) — 재배포 패키지가 없는 PC 대비
+msvc-runtime==14.44.35112

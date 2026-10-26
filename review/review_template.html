@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--tx:#e6edf3;--mut:#8b949e;--acc:#58a6ff;--red:#ff4d4f;--grn:#3fb950;--org:#f0883e;--yel:#e3b341;--pur:#a371f7;--cyan:#39c5cf}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:13px/1.45 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;overflow:hidden}
+button{background:#21262d;color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--acc)}button.on{background:#1f6feb;border-color:#1f6feb}button:disabled{opacity:.4;cursor:default}
+button.ok{border-color:#238636}button.ok.on{background:#238636}button.bad{border-color:#da3633}button.bad.on{background:#da3633}
+button.mdl{border-color:#00b8d4;color:#9eeaf9}button.rul{border-color:#8957e5;color:#d2a8ff}
+.it .a{flex-wrap:wrap}
+kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid #484f58;border-bottom-width:2px;border-radius:4px;font:11px/15px Consolas,monospace;color:#c9d1d9;background:#161b22;text-align:center}
+.top{position:fixed;left:0;right:0;top:0;height:46px;display:flex;align-items:center;gap:10px;padding:0 12px;background:#010409;border-bottom:1px solid var(--line);z-index:5}
+.top h1{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26vw}
+.top .sp{flex:1}
+.prog{display:flex;align-items:center;gap:8px;color:var(--mut);white-space:nowrap}
+.bar{width:140px;height:8px;background:#21262d;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--grn)}
+.col{position:fixed;top:46px;bottom:0;background:var(--panel);overflow:auto;z-index:3}
+#left{left:0;width:250px;border-right:1px solid var(--line)}
+#right{right:0;width:360px;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+#stage{position:fixed;top:46px;bottom:0;left:250px;right:360px;background:#0b0f14;overflow:hidden}
+#stage svg{width:100%;height:100%;display:block;touch-action:none}
+.sec{padding:9px 11px;border-bottom:1px solid var(--line)}
+.sec h3{margin:0 0 6px;font-size:12px;color:var(--mut);font-weight:600}
+.pl{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer}
+.pl:hover{background:#21262d}.pl.sel{background:#1f6feb33;outline:1px solid #1f6feb}
+.pl .nm{font-weight:600;min-width:62px}.pl .cp{flex:1;color:var(--mut);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-block;padding:0 6px;border-radius:9px;font-size:11px;background:#21262d;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.chip.r{color:#ffa198;border-color:#da363388}.chip.g{color:#7ee787;border-color:#23863688}.chip.y{color:#e3b341;border-color:#9e6a0388}
+.row{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.k{color:var(--mut)}
+label.tg{display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0;cursor:pointer}
+.tools{position:absolute;left:10px;top:10px;display:flex;gap:4px;flex-wrap:wrap;background:#161b22e6;border:1px solid var(--line);border-radius:8px;padding:5px;z-index:2;max-width:calc(100% - 20px)}
+.tools .sep{width:1px;background:var(--line);margin:0 3px}
+.tools button{padding:4px 6px}
+.ty{border-width:2px}
+.hud{position:absolute;left:10px;bottom:10px;background:#161b22e6;border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;color:var(--mut);z-index:2;max-width:calc(100% - 20px)}
+#items{flex:1;overflow:auto;padding:4px 8px}
+.it{border:1px solid var(--line);border-left:4px solid var(--yel);border-radius:6px;padding:6px 8px;margin:5px 0;background:#0d1117;cursor:pointer}
+.it.p3{border-left-color:var(--red)}.it.p2{border-left-color:var(--org)}.it.p1{border-left-color:var(--yel)}
+.it.cur{outline:2px solid var(--acc)}.it.done{opacity:.5;border-left-color:#484f58}
+.it .h{display:flex;gap:6px;align-items:center}.it .h b{flex:1;font-size:12.5px}
+.it .d{color:var(--mut);font-size:12px;margin:2px 0 4px}
+.it .a{display:flex;gap:5px}
+.pc{font:600 11px Consolas,monospace;color:#ffa198}
+#props{border-top:1px solid var(--line);padding:8px 11px;min-height:120px;max-height:40%;overflow:auto}
+#props h3{margin:0 0 6px;font-size:12px;color:var(--mut)}
+.banner{position:fixed;left:50%;top:54px;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:6px 14px;border-radius:16px;z-index:8;display:none;font-weight:600;box-shadow:0 4px 18px #0008}
+.banner button{margin-left:8px;padding:1px 8px}
+#help{position:fixed;inset:0;background:#000b;z-index:9;display:none;align-items:center;justify-content:center}
+#help .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:760px;max-height:88vh;overflow:auto}
+#help table{border-collapse:collapse;font-size:12.5px}#help td{padding:3px 10px 3px 0;vertical-align:top}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:var(--mut)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+svg text{font-family:"Malgun Gothic","Noto Sans KR",sans-serif;paint-order:stroke;stroke:#000;stroke-width:var(--tsw,3px);pointer-events:none}
+.flg{padding:5px 7px;margin:4px 0;border-left:3px solid #9e6a03;background:#21262d;border-radius:4px;font-size:12px}.flg.high{border-color:var(--red)}
+input[type=number]{width:70px;background:#0d1117;color:var(--tx);border:1px solid var(--line);border-radius:4px;padding:2px 4px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1 id="title"></h1>
+  <span class="chip y" title="실제 정보카드는 내부 PC 밖으로 반출 금지">내부 PC 전용</span>
+  <div class="prog"><span id="progtxt"></span><div class="bar"><i id="progbar" style="width:0"></i></div></div>
+  <span class="sp"></span>
+  <button id="bUndo" title="되돌리기 (Ctrl+Z)">↶ 되돌리기</button>
+  <button id="bRedo" title="다시 하기 (Ctrl+Y)">↷</button>
+  <button id="bLoad" title="이전에 저장한 검수 파일 불러오기">불러오기</button>
+  <button id="bSave" class="on" title="검수 결과 저장 (Ctrl+S)">검수 결과 저장</button>
+  <button id="bHelp" title="단축키 (?)">?</button>
+  <input type="file" id="file" accept=".json,application/json" style="display:none">
+</div>
+<div id="left" class="col">
+  <div class="sec"><h3>도면(층)</h3><div id="plans"></div></div>
+  <div class="sec" id="pstat"></div>
+  <div class="sec"><h3>보기</h3>
+    <label class="tg"><input type="checkbox" data-ly="img" checked> 도면 이미지</label>
+    <label class="tg"><input type="checkbox" data-ly="walls" checked> 벽</label>
+    <label class="tg"><input type="checkbox" data-ly="doors" checked> 문</label>
+    <label class="tg"><input type="checkbox" data-ly="syms" checked> 소방기호</label>
+    <label class="tg"><input type="checkbox" data-ly="vert" checked> 계단·승강기</label>
+    <label class="tg"><input type="checkbox" data-ly="ghost"> 아래층 벽 겹쳐보기 <kbd>G</kbd></label>
+    <div class="legend" style="margin-top:6px" id="legend"></div>
+  </div>
+  <div class="sec"><h3>교차검증(정보카드 ↔ 도면)</h3><div id="flags"></div></div>
+  <div class="sec k" style="font-size:11.5px">※ 실제 정보카드·검수 파일은 내부 PC 밖으로 반출 금지. 이 화면은 인터넷 없이 동작합니다.</div>
+</div>
+<div id="stage">
+  <div class="tools" id="tools"></div>
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="hud" id="hud"></div>
+</div>
+<div id="right" class="col">
+  <div class="sec" style="padding-bottom:6px"><h3 style="display:flex;align-items:center;gap:6px">검수 필요 <span class="k" style="font-weight:400">(오류 가능성 높은 순)</span><span class="sp" style="flex:1"></span>
+    <label class="tg" style="margin:0"><input type="checkbox" id="onlyPlan"> 이 층만</label></h3>
+    <div class="k" style="font-size:11.5px"><kbd>J</kbd>/<kbd>K</kbd> 다음/이전 · <kbd>Y</kbd> 첫 번째 버튼 · <kbd>N</kbd> 두 번째 버튼 · <kbd>L</kbd> 나중에(교차검증)</div></div>
+  <div id="items"></div>
+  <div id="props"></div>
+</div>
+<div class="banner" id="banner"></div>
+<div id="help"><div class="box">
+  <h2 style="margin:0 0 8px;font-size:16px">검수 화면 사용법</h2>
+  <p class="k" style="margin:0 0 10px">오른쪽 <b>검수 필요</b> 목록(틀렸을 가능성 높은 순)만 확인하면 됩니다. 도면 위 노란 점선은 확인이 필요한 곳입니다.
+  다 하면 <b>검수 결과 저장</b> → 내려받은 <code>*_corrections.json</code> 파일을 <b>검수.bat</b>에 끌어다 놓으면 3D 지휘화면·IFC가 수정본으로 다시 만들어집니다.</p>
+  <table>
+  <tr><td><kbd>V</kbd></td><td>선택·이동 (빈 곳 끌기 = 화면 이동, 휠 = 확대/축소)</td></tr>
+  <tr><td><kbd>A</kbd></td><td>기호 추가 — 도면을 클릭한 곳에 추가 (종류는 <kbd>1</kbd>~<kbd>5</kbd>)</td></tr>
+  <tr><td><kbd>1</kbd>~<kbd>5</kbd></td><td>1 비상구 · 2 옥내소화전 · 3 수신기 · 4 가스밸브 · 5 승강기 (선택한 기호는 종류 변경)</td></tr>
+  <tr><td><kbd>D</kbd></td><td>문 추가 — 벽 근처를 클릭하면 벽 방향에 맞춰 추가 · 선택한 문은 <kbd>R</kbd> 방향 바꾸기</td></tr>
+  <tr><td><kbd>W</kbd></td><td>벽 추가 — 시작점 클릭 → 끝점 클릭(가로/세로로 맞춤)</td></tr>
+  <tr><td><kbd>S</kbd></td><td>계단·승강기 추가 — 도면에 상자를 끌어 그린 뒤 오른쪽에서 종류(계단/승강기)·연결층 선택</td></tr>
+  <tr><td><kbd>Del</kbd></td><td>선택한 기호·문·벽 삭제 (계단·승강기는 오검출 표시)</td></tr>
+  <tr><td><kbd>←↑↓→</kbd></td><td>선택한 것 1px 이동 (<kbd>Shift</kbd> 10px)</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>←↑↓→</kbd></td><td>이 층 전체 위치 보정 0.1m (<kbd>Shift</kbd> 0.5m) — 겹쳐보기(<kbd>G</kbd>)와 함께 사용</td></tr>
+  <tr><td><kbd>O</kbd> / <kbd>X</kbd></td><td>이 층 정합 정상 / 불량</td></tr>
+  <tr><td><kbd>Enter</kbd></td><td>이 층 검수 완료 표시 (학습데이터는 완료한 층만 사용)</td></tr>
+  <tr><td><kbd>J</kbd> <kbd>K</kbd> <kbd>Y</kbd> <kbd>N</kbd></td><td>검수 항목 다음/이전 · 첫째 버튼(맞음) · 둘째 버튼(틀림)</td></tr>
+  <tr><td><kbd>L</kbd></td><td>교차검증 항목(AI 모델 ↔ 규칙 벽·문 불일치) '나중에'. <kbd>Y</kbd> = 모델이 맞음(벽 삭제/추가 반영), <kbd>N</kbd> = 규칙이 맞음(자동 결과 유지)<br>
+  <span class="k">판정은 검수 결과 저장 → 반영(검수.bat) 때 벽·문·3D·IFC에 적용되고, 학습 라벨에는 확정 벽 / '벽 아님' 음성으로 들어갑니다.</span></td></tr>
+  <tr><td><kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>이전/다음 층</td></tr>
+  <tr><td><kbd>F</kbd> <kbd>+</kbd> <kbd>-</kbd></td><td>화면 맞춤 · 확대 · 축소</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>되돌리기 / 다시 하기</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>검수 결과 저장(JSON 내려받기). 작업 내용은 이 PC 브라우저에도 자동 저장됨</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>선택 해제 · 선택 모드로</td></tr>
+  </table>
+  <div style="text-align:right;margin-top:10px"><button onclick="document.getElementById('help').style.display='none'">닫기</button></div>
+</div></div>
+<script>const D = /*@@DATA@@*/null;</script>
+<script>
+/*@@APP@@*/
+</script>
+</body>
+</html>

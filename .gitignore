@@ -1,0 +1,23 @@
+# 재생성 가능 / 대용량
+data*/
+data_hold/
+out*/
+out_hold/
+out_real/
+out_real_cmp/
+out_str/
+cache/
+models/ckpt/
+viewer/node_modules/
+offline/build/
+offline/wheelhouse/
+__pycache__/
+*.pyc
+# AI허브 원천·라벨(재배포 금지) — 커밋 금지
+/aihub/
+/labels/
+*_FP_*.PNG
+*_FP_*.png
+# 실제 소방활동 정보카드·도면(내부 PC 전용) — 커밋 금지
+real_cards/
+결과/

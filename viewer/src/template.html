@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="ko" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>__TITLE__</title>
+<style>
+/* ═════ 테마 토큰 — 야간(기본: 어두운 차량 안) · 주간(밝은 햇빛: 밝은 패널·진한 글자) · 고대비(검정·흰색·노랑, 굵은 테두리) */
+:root{
+  --bg:#0b1220;--bg2:#0a1426;--panel:#0f1a2e;--panel2:#13213a;--panel3:#172a48;--line:#1f3252;--line2:#2f5584;
+  --ink:#e6edf7;--ink2:#c3d0e2;--muted:#8aa0bd;--accent:#38bdf8;--amber:#fbbf24;--red:#f43f5e;--red2:#ef4444;--green:#22c55e;--green2:#4ade80;
+  --violet:#a78bfa;--blue:#60a5fa;--cyan:#22d3ee;--orange:#fb923c;
+  --tx:var(--ink);--mut:var(--muted);--acc:var(--accent);--grn:var(--green2);--org:var(--orange);--pur:var(--violet);
+  --ov:rgba(15,26,46,.9);--ov2:rgba(10,20,38,.94);--ovb:var(--line);--pri:#1d4ed8;--pri-ink:#fff;--focus:#fbbf24;
+  --warnbg:#1f0d16;--warnln:#7f1d1d;--warnink:#fecaca;--hazbg:linear-gradient(135deg,#3b1d06,#2a1206);--hazln:#92400e;--hazink:#fcd34d;
+  --okbg:#0b2418;--okln:#166534;--srbg:#1a1433;--srln:#4c3a8a;--dash:#1c2d49;
+  --stage:radial-gradient(ellipse at 50% 30%,#13243f 0%,#0b1220 72%);--shadow:0 8px 24px rgba(0,0,0,.45);
+  --lbbg:rgba(11,18,32,.9);--lbln:#334e75;--lbink:#e6edf7;--lbmut:#9fb3cc;--bw:1px;
+  --fz:1;--lz:1}
+:root[data-theme="day"]{
+  --bg:#eef2f7;--bg2:#ffffff;--panel:#ffffff;--panel2:#f1f5f9;--panel3:#e2e8f0;--line:#cbd5e1;--line2:#94a3b8;
+  --ink:#0b1424;--ink2:#1e293b;--muted:#475569;--accent:#0369a1;--amber:#b45309;--red:#be123c;--red2:#b91c1c;--green:#15803d;--green2:#15803d;
+  --violet:#6d28d9;--blue:#1d4ed8;--cyan:#0e7490;--orange:#c2410c;
+  --ov:rgba(255,255,255,.95);--ov2:rgba(255,255,255,.97);--ovb:#94a3b8;--pri:#1d4ed8;--pri-ink:#fff;--focus:#c2410c;
+  --warnbg:#fff1f2;--warnln:#fda4af;--warnink:#9f1239;--hazbg:#fffbeb;--hazln:#f59e0b;--hazink:#92400e;
+  --okbg:#f0fdf4;--okln:#86efac;--srbg:#f5f3ff;--srln:#c4b5fd;--dash:#e2e8f0;
+  --stage:radial-gradient(ellipse at 50% 30%,#1b3357 0%,#122340 75%);--shadow:0 6px 18px rgba(15,23,42,.18)}
+:root[data-theme="hc"]{
+  --bg:#000;--bg2:#000;--panel:#000;--panel2:#0a0a0a;--panel3:#1a1a1a;--line:#ffffff;--line2:#ffffff;
+  --ink:#ffffff;--ink2:#ffffff;--muted:#e5e5e5;--accent:#00e5ff;--amber:#ffd400;--red:#ff4d4d;--red2:#ff3030;--green:#33ff66;--green2:#33ff66;
+  --violet:#d4b5ff;--blue:#7cc4ff;--cyan:#00f0ff;--orange:#ffa040;
+  --ov:#000;--ov2:#000;--ovb:#fff;--pri:#ffd400;--pri-ink:#000;--focus:#ffd400;
+  --warnbg:#000;--warnln:#ff4d4d;--warnink:#fff;--hazbg:#000;--hazln:#ffd400;--hazink:#ffd400;--okbg:#000;--okln:#33ff66;--srbg:#000;--srln:#d4b5ff;--dash:#666;
+  --stage:#000;--shadow:none;--lbbg:#000;--lbln:#fff;--lbink:#fff;--lbmut:#e5e5e5;--bw:2px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+  font:13.5px/1.5 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR","Nanum Gothic",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--focus)!important;outline-offset:2px;border-radius:6px}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{display:grid;grid-template-columns:320px minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr) auto;height:100vh;height:100dvh;transition:grid-template-columns .25s}
+.app.noL{grid-template-columns:0 minmax(0,1fr) 340px}.app.noR{grid-template-columns:320px minmax(0,1fr) 0}.app.noL.noR{grid-template-columns:0 minmax(0,1fr) 0}
+/* ── 머리 */
+header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:var(--bw) solid var(--line);background:var(--bg2);min-width:0}
+.logo{display:flex;align-items:center;gap:10px;flex:none}
+.logo .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#f59e0b);display:grid;place-items:center;font-weight:800;color:#fff;font-size:14px;box-shadow:0 0 14px #ef444455}
+.logo small{display:block;font-size:11px;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
+.logo b{font-size:15px;white-space:nowrap;letter-spacing:.01em}
+.bt{display:flex;flex-direction:column;padding-left:12px;border-left:var(--bw) solid var(--line);min-width:0;flex:1 1 auto}
+.bt .nm{display:flex;align-items:center;gap:6px;min-width:0}
+#bname{font-size:18px;font-weight:800;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#baddr{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#btags{display:flex;gap:4px;flex:none}
+.tagx{font-size:11px;padding:1px 8px;border-radius:10px;background:#3b0d17;color:#fda4af;border:1px solid #7f1d1d;white-space:nowrap;flex:none}
+.tagx.b{background:#0c2a43;color:#93c5fd;border-color:#1e4a7a}.tagx.h{background:#3b1d06;color:#fcd34d;border-color:#92400e}
+.hdr-r{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none}
+.stat{font-size:11.5px;color:var(--muted);border:var(--bw) solid var(--line);border-radius:12px;padding:2px 9px;white-space:nowrap;background:var(--panel)}
+.alert{display:flex;align-items:center;gap:6px;background:#3b0d17;border:1px solid #7f1d1d;color:#fecdd3;border-radius:8px;padding:5px 10px;font-size:13px;white-space:nowrap}
+.alert b{background:#f43f5e;color:#fff;border-radius:10px;padding:0 7px}
+.alert.mid{background:#33240a;border-color:#92400e;color:#fde68a}.alert.mid b{background:#d97706}
+.alert:hover{filter:brightness(1.2)}
+.ptg{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:var(--bw) solid var(--line);border-radius:7px;padding:4px 8px;font-size:12px;color:var(--muted);white-space:nowrap}
+.ptg:hover{color:var(--ink);border-color:var(--line2)}.ptg.on{color:var(--ink);border-color:var(--accent)}
+.hgrp{display:flex;gap:2px;background:var(--panel);border:var(--bw) solid var(--line);border-radius:8px;padding:2px}
+.hgrp .ptg{border:0;padding:3px 6px;background:none}.hgrp .ptg[aria-pressed="true"]{background:var(--panel3);color:var(--ink)}
+/* ── 옆 패널 */
+aside{background:var(--panel);overflow:auto;min-height:0;min-width:0;scrollbar-width:thin;scrollbar-color:#2a4469 transparent}
+aside>*{zoom:var(--fz)}
+aside.l{border-right:var(--bw) solid var(--line);grid-column:1;grid-row:2}aside.r{border-left:var(--bw) solid var(--line);grid-column:3;grid-row:2}
+.app.noL aside.l,.app.noR aside.r{overflow:hidden;border:0}
+.tabs{display:flex;position:sticky;top:0;background:var(--panel);z-index:2;border-bottom:var(--bw) solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tab{flex:1 0 auto;background:none;border:0;padding:10px 3px;color:var(--muted);border-bottom:2px solid transparent;font-size:12.5px;white-space:nowrap}
+.tab.on{color:var(--ink);border-color:var(--accent);font-weight:700}.tab:hover{color:var(--ink)}
+.tab .n{font-size:10px;background:#7f1d1d;color:#fecdd3;border-radius:8px;padding:0 5px;margin-left:3px;vertical-align:1px}
+.tabp{padding:12px 14px}.tabp[hidden]{display:none}
+h4{margin:14px 0 6px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em}
+.tabp>h4:first-child,.sec h4:first-child{margin-top:0}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--dash);font-size:13px}
+.kv span{color:var(--muted);flex:none}.kv b{font-weight:600;text-align:right}
+.muted{color:var(--muted)}.sm{font-size:12px}.k{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:baseline;gap:4px;background:var(--panel2);border:var(--bw) solid var(--line);border-radius:6px;padding:2px 7px;font-size:12px;color:var(--muted)}
+.chip b{color:var(--ink);font-size:13px}
+.chip.zero{border-color:var(--warnln);background:var(--warnbg)}.chip.zero b{color:var(--red)}
+.chip.btn{cursor:pointer;color:var(--warnink);border-color:var(--warnln);background:var(--warnbg)}.chip.btn:hover{filter:brightness(1.15)}
+.chip.btn.am{color:var(--hazink);border-color:var(--hazln);background:var(--hazbg)}
+.issue,.igrp{border-radius:8px;padding:9px 11px;margin-bottom:8px;border:var(--bw) solid var(--line);background:var(--panel2);border-left-width:4px;font-size:12.5px;color:var(--ink2)}
+.issue.high,.igrp.high{border-left-color:var(--red)}.issue.mid,.igrp.mid{border-left-color:var(--amber)}.issue.low,.igrp.low{border-left-color:#64748b}
+.issue b,.igrp>b{display:block;font-weight:700;font-size:13px;margin-bottom:2px;color:var(--ink)}.igrp .cnt{white-space:nowrap;font-size:11px;font-weight:700;color:var(--muted);margin-left:4px}
+.igrp .issue.sub{margin:4px 0 0;padding:4px 8px;border-left-width:3px;background:var(--panel);font-size:12px}.igrp details.more{margin:4px 0 0}
+.issue .cat,.igrp .cat{display:inline-block;font-size:10px;font-weight:600;padding:0 6px;margin-right:6px;border-radius:7px;background:#1e3a5f;color:#bcd3f0;vertical-align:1px}
+.issue.high .cat,.igrp.high .cat{background:#4c0d14;color:#fecdd3}
+.ifilt{display:flex;gap:5px;margin:0 0 8px;flex-wrap:wrap}
+.ifilt button{background:var(--panel2);border:var(--bw) solid var(--line);border-radius:12px;padding:1px 9px;font-size:11.5px;color:var(--muted)}
+.ifilt button.on{color:var(--ink);border-color:var(--line2);background:var(--panel3)}
+.haz{background:var(--hazbg);border:var(--bw) solid var(--hazln);border-radius:10px;padding:10px 12px;font-size:13px;margin:6px 0}
+.haz b{display:block;font-weight:800;color:var(--hazink);margin-bottom:3px}
+.step{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--dash)}
+.step>b{flex:none;width:22px;height:22px;border-radius:50%;background:#1d4ed8;color:#fff;display:grid;place-items:center;font-size:12px}
+.step .it{font-weight:700;font-size:13px}.step .id{font-size:12.5px;color:var(--ink2)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td{padding:4px 3px;border-bottom:1px dashed var(--dash);vertical-align:top}td:last-child{text-align:right}
+.sec{padding:11px 14px;border-bottom:var(--bw) solid var(--line)}
+.sec h3{margin:0 0 7px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.03em}
+.sec.warn{background:var(--warnbg)}.sec.warn h4{color:var(--red)}
+.ops{background:linear-gradient(180deg,#0c2233,var(--panel))}.ops h4{color:#67e8f9}
+.og{margin:6px 0 10px}.ol{font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:2px;display:flex;align-items:center;gap:6px}.ol b{color:#fca5a5;font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:5px}
+.rw{display:flex;align-items:flex-start;gap:8px;width:100%;text-align:left;background:none;border:0;padding:5px 4px;border-radius:6px;font-size:13px;color:var(--ink)}
+.rw:hover{background:var(--panel2)}.rw .r{margin-left:auto;flex:none}
+.rw .s{display:block;font-size:11.5px;color:var(--muted)}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:5px;box-shadow:0 0 6px currentColor}
+.tip{font-size:12px;color:#fda4af;margin-top:2px}.warnl{color:var(--orange);font-size:12px}
+.fid{display:inline-block;min-width:34px;text-align:center;background:#1e3a5f;color:#e6edf7;border-radius:5px;padding:0 6px;font-weight:800;font-size:12px;flex:none}
+.fid.big{font-size:15px;background:var(--amber);color:#1a1200;padding:2px 8px}
+.ph{padding:12px 14px;border-bottom:var(--bw) solid var(--line);background:linear-gradient(180deg,#132443,var(--panel))}
+.ph-t{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.ph-s{color:var(--ink2);margin-top:2px}
+.grade{margin-top:8px;font-size:12.5px;color:#a5f3fc;background:#082f3a;border:1px solid #155e75;border-radius:6px;padding:5px 8px}
+.grade.lo{color:#fde68a;background:#2a1a06;border-color:#92400e}
+.ph-b{display:flex;gap:6px;margin-top:10px}
+.ph-b button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:var(--panel2);border:var(--bw) solid var(--line2);border-radius:7px;padding:6px 4px;white-space:nowrap;font-size:13px}
+.ph-b button.pri{background:var(--pri);border-color:var(--pri);color:var(--pri-ink);font-weight:700}
+.ph-b button:disabled{opacity:.45;cursor:not-allowed}
+.fireh{background:linear-gradient(180deg,#4c0d14,var(--panel))}.fireh .ph-t{color:#fecaca}
+.fireh .ph-b button.pri{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.kpis div{background:var(--panel2);border:var(--bw) solid var(--line);border-radius:8px;padding:6px 2px;text-align:center;font-size:11px;color:var(--muted)}
+.kpis b{display:block;font-size:19px;color:var(--ink)}
+.badge{font-size:10px;background:#1d4ed8;color:#fff;border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:1px}
+.rseg{display:flex;gap:0;padding:8px 10px 0;background:var(--panel)}.rseg[hidden]{display:none}
+.rseg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:var(--panel2);border:var(--bw) solid var(--line);padding:5px;font-size:12.5px;color:var(--muted)}
+.rseg button:first-child{border-radius:7px 0 0 7px}.rseg button:last-child{border-radius:0 7px 7px 0}
+.rseg button.on{color:var(--ink);border-color:var(--line2);background:var(--panel3);font-weight:700}
+.rseg button.f.on{background:#4c0d14;border-color:#b91c1c;color:#fecaca}
+.facs{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:12.5px;align-items:center}
+.facs .nm{display:flex;gap:6px;align-items:center;min-width:0}.facs .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sq{width:8px;height:8px;border-radius:2px;flex:none}
+/* 출동 전 30초 요약 */
+.b30{margin:10px 10px 4px;border:var(--bw) solid #b45309;border-radius:12px;background:linear-gradient(180deg,#2a1a06 0%,var(--panel) 70%);overflow:hidden}
+.b30 .hd{display:flex;align-items:center;gap:7px;width:100%;background:none;border:0;padding:8px 11px 6px;font-weight:800;font-size:13.5px;color:#fde68a;text-align:left}
+.b30 .hd .ic{color:#fbbf24}.b30 .hd{white-space:nowrap}.b30 .hd span{margin-left:auto;font-size:11px;font-weight:500;color:var(--muted);overflow:hidden;text-overflow:ellipsis;min-width:0}
+.b30 .hd .ic:last-child{transition:transform .2s;color:var(--muted)}.b30.open .hd .ic:last-child{transform:rotate(90deg)}
+.b30 ol{list-style:none;margin:0;padding:0 6px 6px}.b30:not(.open) ol{display:none}
+.b30 li button{display:grid;grid-template-columns:28px 1fr auto;gap:0 8px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px dashed var(--dash);padding:4px 5px;border-radius:6px;color:var(--ink)}
+.b30 li button:hover{background:var(--panel2)}
+.b30 .bi{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:17px;background:var(--panel2);border:var(--bw) solid var(--line)}
+.b30 .bt3{min-width:0}.b30 .bt3 small{display:block;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.b30 .bt3 b{display:block;font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b30 .bt3 i{display:block;font-style:normal;font-size:11.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b30 .go{color:var(--muted)}.b30 li.bad .bi{border-color:var(--red);color:var(--red)}.b30 li.warn .bi{border-color:var(--amber);color:var(--amber)}
+/* 접기(점진 공개) */
+details.more{margin:6px 0}details.more>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);padding:4px 2px;border-radius:5px}
+details.more>summary::-webkit-details-marker{display:none}details.more>summary::before{content:'';width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin:0 3px}
+details.more[open]>summary::before{transform:rotate(45deg)}details.more>summary:hover{color:var(--ink)}details.more>summary .cnt{margin-left:auto;font-weight:500}
+.fk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:6px 0 8px}
+.fk div{background:var(--panel2);border:var(--bw) solid var(--line);border-radius:8px;padding:5px 8px;min-width:0}
+.fk small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}.fk b{display:block;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fk div.bad{border-color:#b91c1c;background:var(--warnbg)}.fk div.bad b{color:var(--warnink)}.fk div.wide{grid-column:1/-1}
+/* 공통 버튼(모듈 HTML) */
+.sec button:not(.rw):not(.chip),.tabp button:not(.tab):not(.rw):not(.chip){background:var(--panel2);color:var(--ink);border:var(--bw) solid var(--line);border-radius:6px;padding:4px 9px;font-size:12px}
+.sec button:not(.rw):not(.chip):hover,.tabp button:not(.tab):not(.rw):not(.chip):hover{border-color:var(--accent)}
+.sec button.on,.tabp button.on,#rpFire button.on{background:#1d4ed8!important;border-color:#1d4ed8!important;color:#fff}
+button.fire{background:#7f1d1d!important;border-color:#dc2626!important;color:#fee2e2!important}button.fire.on{background:#dc2626!important}
+label.tg{display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:2px 8px 2px 0;cursor:pointer}
+select,input[type=number],input[type=text]{background:var(--panel2);color:var(--ink);border:var(--bw) solid var(--line2);border-radius:6px;padding:3px 5px;font:inherit;font-size:12px}
+input[type=number]{width:56px}
+.note{color:var(--muted);font-size:11.5px;margin-top:5px}
+.mk{display:flex;gap:6px;align-items:flex-start;padding:3px 4px;border-radius:5px;cursor:pointer;font-size:12.5px}.mk:hover{background:var(--panel2)}
+.mk .dot{margin-top:4px}
+.res{background:var(--warnbg);border:var(--bw) solid var(--warnln);border-radius:10px;padding:9px 11px;margin-top:2px;font-size:12.5px;color:var(--ink2)}
+.res>div{margin:3px 0}.res b{color:var(--warnink)}.res .big{font-size:15px;color:var(--ink);font-weight:800}
+.srres{background:var(--srbg);border:var(--bw) solid var(--srln);border-radius:8px;padding:6px 8px;margin-top:6px}table.srt td{vertical-align:top}
+.evres{background:var(--okbg);border:var(--bw) solid var(--okln);border-radius:8px;padding:6px 8px;margin-top:6px}
+.trn-box{background:var(--panel2);border:var(--bw) solid #1d4ed8aa;border-radius:8px;padding:8px 10px;font-size:12.5px}.trn-box .big{font-size:15px;font-weight:700}
+table.trf td{vertical-align:middle}table.trf input{width:60px}
+.dong a{color:var(--blue)}.dong .on{font-weight:700}
+.fcert{display:inline-block;font-size:10px;font-weight:600;padding:0 5px;border-radius:7px;margin:0 1px;white-space:nowrap;line-height:1.6}
+.fcert.located{background:#15803d;color:#fff}.fcert.estimated{background:none;border:1px dashed #d29922;color:var(--amber)}.fcert.present{background:#334155;color:#cbd5e1}
+table.fact td{vertical-align:top}table.fact td:nth-child(2),table.fact td:nth-child(3){text-align:right;white-space:nowrap}tr.mkrow{cursor:pointer}tr.mkrow:hover{background:var(--panel2)}
+/* ── 무대(3D) — 고정 UI 위치는 main.js layoutUI() 가 계산(서로 겹치지 않게: 위 범례 줄 · 왼쪽 도구 열 · 오른쪽 층 열 · 아래 보기 줄/시간축 · 오른쪽 아래 미니맵·나침반) */
+#stage{grid-column:2;grid-row:2;position:relative;min-height:0;min-width:0;overflow:hidden;background:var(--stage)}
+#c{display:block;width:100%;height:100%;outline:none}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.toolbar{position:absolute;left:12px;top:12px;right:80px;display:flex;flex-wrap:wrap;gap:6px;z-index:6;pointer-events:none;max-height:31px;overflow:hidden;padding:1px}
+.toolbar.open{max-height:none;overflow:visible;background:var(--ov2);border:var(--bw) solid var(--ovb);border-radius:12px;padding:8px;box-shadow:var(--shadow);pointer-events:auto}
+.lay,#layMore{pointer-events:auto;display:inline-flex;align-items:center;gap:5px;background:var(--ov);border:var(--bw) solid var(--ovb);border-radius:16px;padding:3px 10px 3px 8px;font-size:12px;color:var(--muted);backdrop-filter:blur(4px);white-space:nowrap;height:29px}
+.lay .ic{width:15px;height:15px;opacity:.4;color:var(--c,#94a3b8)}
+.lay.on{color:var(--ink);border-color:var(--line2)}.lay.on .ic{opacity:1;filter:drop-shadow(0 0 3px var(--c))}
+.lay:hover,#layMore:hover{border-color:#3b82f6}.lay.ovf{visibility:hidden}.toolbar.open .lay.ovf{visibility:visible}
+#layMore{position:absolute;top:13px;z-index:7;color:var(--ink);font-weight:700;gap:4px}#layMore[hidden]{display:none}#layMore .ic{width:14px;height:14px}
+.views{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;z-index:5;flex-wrap:wrap}
+.vbtn{display:inline-flex;align-items:center;gap:6px;background:var(--ov);border:var(--bw) solid var(--ovb);border-radius:8px;padding:6px 11px;font-size:13px;white-space:nowrap;color:var(--ink)}
+.vbtn .ic{width:16px;height:16px}
+.vbtn:hover{border-color:#3b82f6}.vbtn.on{border-color:var(--amber);color:var(--amber)}
+.vbtn.sm{padding:6px 9px;font-size:12px;color:var(--muted)}
+.vbtn:disabled{opacity:.35;cursor:not-allowed}
+.vbtn.firebtn{border-color:#b91c1c;color:#fecaca;background:rgba(60,10,20,.92)}.vbtn.firebtn.on{background:#dc2626;color:#fff;border-color:#dc2626}
+#fbar{position:absolute;right:12px;top:12px;bottom:12px;display:flex;flex-direction:column;gap:4px;z-index:5;overflow:auto;padding:0 2px 0 0;scrollbar-width:none;width:62px}
+.fgrp{font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px}
+.fgrp a{color:var(--blue);text-decoration:none}
+.fbtn{width:56px;padding:6px 0;border-radius:8px;background:var(--ov);border:var(--bw) solid var(--ovb);font-weight:800;font-size:13px;position:relative;flex:none;color:var(--ink)}
+.fbtn:hover{border-color:#3b82f6}.fbtn.on{background:var(--amber);color:#1a1200;border-color:var(--amber)}
+.fbtn.off{opacity:.45;text-decoration:line-through}
+.fbtn .fx{position:absolute;right:-3px;top:-6px;font-size:11px}
+.fbtn.lo:not(.on){border-color:#92400e}
+#compass{position:absolute;right:80px;bottom:12px;width:44px;height:44px;border-radius:50%;border:var(--bw) solid var(--ovb);background:var(--ov);display:grid;place-items:center;z-index:5;cursor:pointer;padding:0}
+#compass i{display:block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:18px solid #60a5fa;position:relative;top:-3px;transform-origin:50% 80%;filter:drop-shadow(0 0 4px #60a5fa)}
+#compass span{position:absolute;top:1px;font-size:9px;color:var(--muted);font-weight:700}
+.sec:has(> #fireRes:empty){display:none}
+#info{position:absolute;left:12px;bottom:112px;z-index:8;background:var(--ov2);border:var(--bw) solid var(--line2);border-radius:8px;padding:7px 11px;font-size:12.5px;max-width:420px;box-shadow:var(--shadow);display:none}
+#info>*{zoom:var(--fz)}#info .x{float:right;margin-left:8px;cursor:pointer;color:var(--muted)}
+#tip{position:absolute;z-index:9;background:var(--ov2);border:var(--bw) solid var(--line2);border-radius:8px;padding:5px 10px;font-size:12.5px;pointer-events:none;max-width:300px;box-shadow:var(--shadow);display:none;white-space:nowrap}
+#tip .k{font-size:11.5px}
+#hint{position:absolute;left:50%;top:60px;z-index:7;background:#450a0a;border:1px solid #dc2626;color:#fee2e2;border-radius:20px;padding:7px 16px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.5);white-space:nowrap;display:none;max-width:calc(100% - 160px);overflow:hidden;text-overflow:ellipsis}
+#evTip{position:fixed;z-index:8;pointer-events:none;background:var(--ov2);border:1px solid var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;max-width:320px;display:none;box-shadow:var(--shadow)}
+/* 표식 묶음 설명(인명검색 번호 등: 마우스 올림·누름) */
+#mkTip{position:absolute;z-index:9;background:var(--ov2);border:var(--bw) solid #8b5cf6;border-radius:10px;padding:7px 10px;font-size:12px;max-width:320px;box-shadow:var(--shadow);display:none;pointer-events:auto}
+#mkTip>*{zoom:var(--fz)}#mkTip .x{position:absolute;right:6px;top:2px;background:none;border:0;color:var(--muted);padding:2px}
+#mkTip table td{padding:2px 3px}#mkTip tr{cursor:pointer}#mkTip tr:hover{background:var(--panel2)}
+/* ── 3D 라벨 (글자 크기는 --lz 배율) */
+.lb{padding:1px 7px;border-radius:5px;font-size:calc(11.5px*var(--lz));font-weight:600;white-space:nowrap;background:var(--lbbg);border:var(--bw) solid var(--lbln);color:var(--lbink);transform:translateY(-12px)}
+.lb.stair{border-color:#4ade80;color:#bbf7d0}.lb.ev{border-color:#60a5fa;color:#bfdbfe}.lb.ent{border-color:#22d3ee;color:#a5f3fc;font-size:calc(12px*var(--lz))}
+.lb.hose{border-color:#ef4444;color:#fecaca}.lb.gas{border-color:#f59e0b;color:#fde68a}.lb.panel{border-color:#a78bfa;color:#ddd6fe}
+.lb.fire{background:#7f1d1d;border-color:#f87171;color:#fff;font-size:calc(13px*var(--lz));box-shadow:0 0 14px #ef4444aa}.lb.atk{background:#052e16;border-color:#4ade80;color:#bbf7d0}.lb.evac{background:#0b2a4a;border-color:#60a5fa;color:#dbeafe}
+.lb.srch{background:#5b21b6;border-color:#a78bfa;border-radius:50%;min-width:22px;text-align:center;color:#fff;pointer-events:auto;cursor:pointer;position:relative}
+.lb.srch.b1{background:#4c1d95}.lb.srch.b2{background:#334155;border-color:#94a3b8}.lb.srch.top{box-shadow:0 0 0 2px #fbbf24}
+.lb.srch[data-n]::after{content:'+' attr(data-n);position:absolute;right:-13px;top:-9px;background:#fbbf24;color:#1a1200;border-radius:8px;font-size:calc(9.5px*var(--lz));line-height:1.35;padding:0 4px;font-weight:800;box-shadow:0 0 0 1px #0b1220}
+.lb.tick{background:rgba(11,18,32,.8);border-color:#ffffff88;font-size:calc(10px*var(--lz));font-weight:500;padding:0 4px}.lb.wseg{background:#6b4f00;border-color:#fbbf24;font-size:calc(10px*var(--lz));padding:0 4px}
+.lb.scba{background:#4c1d95;border-color:#c4b5fd}.lb.trn{background:#1d4ed8;border-color:#93c5fd;border-radius:50%;min-width:22px;text-align:center}
+.lb.fl{background:none;border:none;color:var(--lbmut);font-size:calc(12px*var(--lz))}
+.lb.zone{background:rgba(11,18,32,.75);border-color:#60a5fa88;color:#cfe4ff;font-size:calc(11px*var(--lz))}
+.lb.road{background:rgba(11,18,32,.7);border-color:#64748b;color:#cbd5e1;font-weight:400}.lb.obst{border-color:var(--orange);color:#fed7aa;font-weight:400}
+.lb.facok{border-color:var(--green2);color:#bbf7d0;font-weight:500}.lb.facno{border-color:#f87171;color:#fecaca;font-weight:500}
+.lb.aer{background:#7f1d1d;border-color:#f87171}.lb.pump{background:#1e3a8a;border-color:#60a5fa}.lb.hyd{border-color:var(--red2);color:#fecaca}
+.lb.fdc{background:#6b4f00;border-color:#fbbf24}.lb.win{border-color:var(--cyan);color:#a5f3fc;font-size:calc(11px*var(--lz))}
+.lb.evo{background:#7c2d12cc;border-color:#fb923c;font-size:calc(11px*var(--lz))}.lb.evi{background:#4c1d95cc;border-color:#a78bfa;font-size:calc(11px*var(--lz))}.lb.evx{border-color:#4ade80;color:#bbf7d0;font-size:calc(11px*var(--lz))}
+.lb.facl{font-weight:500;font-size:calc(10.5px*var(--lz));padding:0 5px}.lb.facbadge{font-weight:400;font-size:calc(10.5px*var(--lz));line-height:1.4;border-color:#475569;transform:none;text-align:left;background:rgba(11,18,32,.82)}
+.lb.rname{background:rgba(8,14,26,.68);border:1px solid rgba(148,163,184,.3);color:#e2e8f0;font-weight:500;font-size:calc(11px*var(--lz));padding:0 5px;transform:none}
+/* 말풍선(지시선) */
+.co{display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.co .bx{background:var(--lbbg);border:var(--bw) solid #334e75;border-radius:5px;padding:1px 8px;font-size:calc(12px*var(--lz));font-weight:700;white-space:nowrap;color:#e6edf7;box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.co .bx .ic{width:1.05em;height:1.05em}
+.co .lg{width:1px;height:var(--leg,22px);background:linear-gradient(180deg,var(--cc,#94a3b8),transparent 140%)}
+.co .pt{width:7px;height:7px;border-radius:50%;background:var(--cc,#94a3b8);box-shadow:0 0 8px var(--cc,#94a3b8);margin-bottom:-3px}
+.co.t-ent{--cc:#22d3ee}.co.t-ent .bx{border-color:#22d3ee;color:#a5f3fc}
+.co.t-stair{--cc:#4ade80}.co.t-stair .bx{border-color:#4ade80;color:#bbf7d0}
+.co.t-ev{--cc:#60a5fa}.co.t-ev .bx{border-color:#60a5fa;color:#bfdbfe}
+.co.t-hose{--cc:#ef4444}.co.t-hose .bx{border-color:#ef4444;color:#fecaca;font-weight:600;font-size:calc(11px*var(--lz))}
+.co.t-panel,.co.t-gas{--cc:#a78bfa}.co.t-panel .bx{border-color:#a78bfa;color:#ddd6fe;font-weight:600;font-size:calc(11px*var(--lz))}.co.t-gas .bx{border-color:#f59e0b;color:#fde68a;font-weight:600;font-size:calc(11px*var(--lz))}
+.co.t-exit{--cc:#22c55e}.co.t-exit .bx{border-color:#22c55e;color:#bbf7d0;font-weight:600;font-size:calc(11px*var(--lz))}
+.culled{visibility:hidden!important}
+#labels .culled *{pointer-events:none!important}
+.ftag{pointer-events:auto;cursor:pointer;background:var(--ov);border:var(--bw) solid var(--ovb);color:var(--ink2);padding:0 8px;border-radius:6px;font-weight:800;font-size:calc(12px*var(--lz));white-space:nowrap}
+.ftag:hover{border-color:var(--amber)}.ftag.on{background:var(--amber);color:#1a1200;border-color:var(--amber)}.ftag.fire{border-color:#ef4444;color:#fecaca}
+.north{color:#93c5fd;font-weight:800;font-size:16px;text-shadow:0 0 8px #3b82f6}
+/* ── 도구 열 · 단면 · 시간축 · 미니맵 · 따라가기 · 도움말 · 2D 대체 */
+#dock{position:absolute;left:12px;top:56px;display:grid;grid-template-columns:52px;gap:4px;z-index:5;align-content:start}
+#dock.two{grid-template-columns:repeat(2,52px)}
+#dock button{width:52px;height:44px;border-radius:9px;background:var(--ov);border:var(--bw) solid var(--ovb);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1;padding:0;color:var(--ink2);backdrop-filter:blur(4px)}
+#dock button .ic{width:18px;height:18px}
+#dock button small{font-size:10px;color:var(--muted);letter-spacing:-.03em;white-space:nowrap}
+#dock button:hover{border-color:#3b82f6}#dock button.on{background:#1d4ed8;border-color:#60a5fa;color:#fff}#dock button.on small{color:#dbeafe}
+#dock button:disabled{opacity:.3;cursor:not-allowed}
+#dock .sep{height:1px;background:var(--ovb);margin:1px 8px;opacity:.7}#dock.two .sep{grid-column:1/-1}
+#dock.compact button{height:38px}#dock.compact button .ic{width:16px;height:16px}#dock.compact button small{font-size:9.5px}
+#secPanel{position:absolute;left:76px;top:56px;z-index:7;width:236px;background:var(--ov2);border:var(--bw) solid var(--line2);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow)}
+#secPanel>*{zoom:var(--fz)}
+#secPanel[hidden]{display:none}#secPanel .sp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}#secPanel .sp-h button{background:none;border:0;color:var(--muted)}
+#secPanel input[type=range]{width:100%;margin:2px 0 6px}#secPanel select,#secPanel button.sb{font-size:11.5px;padding:2px 6px;background:var(--panel2);border:var(--bw) solid var(--line);border-radius:5px;color:var(--ink)}
+/* 시간축(화재 가정): 아래 붙박이 — 재생 줄 + 경로 범례 + 상황 글 */
+#tl{position:absolute;left:76px;right:330px;bottom:58px;z-index:5;background:var(--ov2);border:var(--bw) solid #7f1d1d;border-radius:12px;padding:7px 11px 7px;display:grid;grid-template-columns:auto minmax(80px,1fr) auto auto;gap:5px 10px;align-items:center;box-shadow:var(--shadow)}
+#tl>*{zoom:var(--fz)}
+#tl[hidden]{display:none}#tl>button,#tl .tlb button{display:inline-flex;align-items:center;gap:4px;background:#7f1d1d;border:1px solid #dc2626;color:#fff;border-radius:7px;padding:3px 10px;font-size:13px}
+#tl .tlb{display:flex;gap:8px;align-items:center;font-size:11.5px;white-space:nowrap}#tl .tlb button{background:var(--panel2);border-color:var(--line2);color:var(--ink);font-size:12px}
+#tl #tlT{font-variant-numeric:tabular-nums;font-size:16px;color:#fecaca;min-width:50px;text-align:center}
+.tlm{position:relative}.tlm input{width:100%;margin:0;accent-color:#ef4444}#tlTicks{position:absolute;left:0;right:0;top:-3px;height:6px;pointer-events:none}
+#tlTicks i{position:absolute;top:0;width:1px;height:6px;background:#94a3b8}#tlTicks i.arr{width:3px;background:#f97316;height:8px;top:-2px;border-radius:2px}
+#flegend{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:3px 12px;font-size:11px;color:var(--ink2);border-top:1px dashed var(--dash);padding-top:5px}
+#flegend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}#flegend i{width:14px;height:4px;border-radius:2px;display:inline-block}
+#flegend .lgh{color:var(--muted);font-weight:700}
+#tlInfo{grid-column:1/-1;font-size:11.5px;color:var(--ink2);line-height:1.45;max-height:74px;overflow:auto;border-top:1px dashed var(--dash);padding-top:4px}
+#tlInfo .k{color:var(--muted)}
+#ttuLeg{display:none!important}#stage.tlOn #ttuLeg{display:inline-flex!important}
+#mini{position:absolute;right:80px;bottom:66px;width:232px;height:172px;z-index:5;border:var(--bw) solid var(--line2);border-radius:10px;cursor:crosshair;box-shadow:var(--shadow);touch-action:none}
+#mini[hidden],#mini.nofit{display:none}
+#follow{position:absolute;left:50%;top:56px;transform:translateX(-50%);z-index:7;background:var(--ov2);border:1px solid #f59e0b;border-radius:12px;padding:8px 14px;min-width:min(420px,60%);max-width:calc(100% - 180px);font-size:12.5px;box-shadow:var(--shadow)}
+#follow>*{zoom:var(--fz)}
+#follow[hidden]{display:none}.fwb{height:4px;background:#1f3252;border-radius:2px;margin:6px 0}.fwb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:2px}
+.fwc{display:flex;gap:5px}.fwc button{background:var(--panel2);border:var(--bw) solid var(--line2);border-radius:6px;padding:2px 9px;font-size:12px}.fwc button.on{border-color:#f59e0b;color:#fbbf24}.fwc #fwStop{margin-left:auto;color:#fecaca;border-color:#7f1d1d}
+#help{position:absolute;inset:0;z-index:15;background:rgba(3,7,15,.6);display:flex;align-items:center;justify-content:center}#help[hidden]{display:none}
+#help .hb{background:var(--bg2);border:var(--bw) solid var(--line2);border-radius:12px;padding:14px 18px;width:min(580px,94%);max-height:94%;overflow:auto;font-size:12.5px;box-shadow:0 20px 50px #000c;zoom:var(--fz)}
+#help table td{padding:3px 4px;text-align:left!important}#help table td:first-child{white-space:nowrap;width:1%}#help kbd{background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:0 6px;font:600 11.5px/1.6 ui-monospace,monospace;color:var(--ink)}
+#help .x{background:none;border:0;color:var(--muted);padding:2px 6px}
+#volLeg{position:absolute;left:76px;bottom:58px;z-index:5;display:flex;flex-wrap:wrap;gap:3px 9px;background:var(--ov2);border:var(--bw) solid var(--ovb);border-radius:8px;padding:4px 9px;font-size:11px;color:var(--ink2)}
+#volLeg[hidden]{display:none}#volLeg b{font-size:11px;color:var(--muted);margin-right:2px}#volLeg span{display:inline-flex;align-items:center;gap:4px}#volLeg i{width:9px;height:9px;border-radius:2px;display:inline-block;opacity:.85}
+#fallback{position:absolute;inset:0;width:100%;height:100%;z-index:2;background:#0b1220}#fallback[hidden]{display:none}
+#glmsg{position:absolute;left:50%;top:56px;transform:translateX(-50%);z-index:7;background:#33240a;border:1px solid #d97706;color:#fde68a;border-radius:10px;padding:7px 12px 7px 14px;font-size:12.5px;max-width:calc(100% - 180px);display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow)}
+#glmsg[hidden]{display:none}#glmsg button{background:none;border:0;color:#fde68a;padding:0 2px;flex:none}#glmsg small{display:block;color:#fcd34d;opacity:.85}
+.lb.meas{background:rgba(66,52,0,.92);border-color:#fde047;color:#fef9c3;font-size:calc(12px*var(--lz));transform:none}
+.lb.crew{display:flex;align-items:center;gap:5px;background:rgba(11,18,32,.92);font-size:calc(11.5px*var(--lz));transform:translateY(-6px)}.lb.crew i{width:8px;height:8px;border-radius:50%;display:inline-block}.lb.crew span{color:var(--lbmut);font-weight:500}
+.lb.crew.warn{background:#4c1d95;border-color:#c4b5fd}.lb.crew.warn span{color:#ede9fe}
+.co.t-stair.sp .bx,.co.t-ev.sp .bx{border-color:#facc15;color:#fef08a;box-shadow:0 0 10px #facc1555}.co.sp{--cc:#facc15}
+.kpis.kp3{grid-template-columns:repeat(3,1fr)}
+details.ix{margin-top:3px}details.ix summary{cursor:pointer;color:var(--muted);font-size:11px}details.ix div{font-size:11px;color:var(--muted);word-break:break-all;margin-top:2px}
+@media (pointer:coarse){#dock button{width:56px;height:52px}#dock.two{grid-template-columns:repeat(2,56px)}.lay{padding:5px 12px;height:34px}.fbtn{padding:9px 0}.vbtn{padding:9px 14px}}
+#stage.picking #labels .co .bx,#stage.picking #labels .ftag,#stage.picking #labels .lb.srch{pointer-events:none}
+#stage.simOn #labels .lb.srch:not(.fr0){visibility:hidden}   /* 확산 재생 중: 위층 인명검색 번호는 숨김(화재층만) */
+/* ── 바닥줄 */
+footer{grid-column:1/-1;grid-row:3;font-size:11.5px;color:var(--muted);padding:5px 14px;border-top:var(--bw) solid var(--line);background:var(--bg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+footer b{color:var(--ink2);font-weight:600}
+/* ── 평면도 창 */
+#modal{position:fixed;inset:0;background:rgba(3,7,15,.84);z-index:20;display:none;align-items:center;justify-content:center;padding:18px}
+.mbox{background:var(--bg2);border:var(--bw) solid var(--line);border-radius:12px;width:min(1300px,100%);height:min(900px,100%);display:flex;flex-direction:column;overflow:hidden}
+.mh{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:var(--bw) solid var(--line)}
+.mh b{font-size:15px}.mh .sp{margin-left:auto}
+.mh button{background:var(--panel2);border:var(--bw) solid var(--line);border-radius:6px;padding:3px 12px}
+#mview{flex:1;overflow:hidden;display:grid;place-items:center;background:#fff;cursor:grab;touch-action:none}
+#mimg{max-width:100%;max-height:100%;transform-origin:center;user-select:none;-webkit-user-drag:none}
+#mcap{font-size:12px;color:var(--muted)}
+.hide{display:none!important}
+#hidden{display:none}
+/* ── 시작 화면(불러오는 중) */
+#boot{position:fixed;inset:0;z-index:50;background:#0b1220;color:#e6edf7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font:14px/1.5 "Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;transition:opacity .35s}
+#boot.done{opacity:0;pointer-events:none}#boot .sp{width:46px;height:46px;border-radius:50%;border:4px solid #1f3252;border-top-color:#f59e0b;animation:spin 0.9s linear infinite}
+#boot b{font-size:17px}#boot .s{color:#8aa0bd;font-size:12.5px;max-width:520px;text-align:center}#boot.err .sp{display:none}#boot.err b{color:#fca5a5}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:2s!important}}
+/* ── 주간 테마: 밝은 패널·진한 글자(3D 화면은 빛나는 선이 잘 보이도록 남색 유지) */
+:root[data-theme="day"] .ops{background:linear-gradient(180deg,#e0f2fe,#fff)}:root[data-theme="day"] .ops h4{color:#0e7490}
+:root[data-theme="day"] .ph{background:linear-gradient(180deg,#e8eef7,#fff)}:root[data-theme="day"] .fireh{background:linear-gradient(180deg,#fee2e2,#fff)}:root[data-theme="day"] .fireh .ph-t{color:#991b1b}
+:root[data-theme="day"] .ol b,:root[data-theme="day"] .tip{color:#be123c}:root[data-theme="day"] .fid{background:#dbeafe;color:#1e3a8a}:root[data-theme="day"] .fid.big{background:#f59e0b;color:#1a1200}
+:root[data-theme="day"] .issue .cat,:root[data-theme="day"] .igrp .cat{background:#e2e8f0;color:#1e3a8a}:root[data-theme="day"] .issue.high .cat,:root[data-theme="day"] .igrp.high .cat{background:#ffe4e6;color:#9f1239}
+:root[data-theme="day"] .tab .n{background:#be123c;color:#fff}
+:root[data-theme="day"] .b30{background:linear-gradient(180deg,#fff7ed 0%,#fff 70%);border-color:#f59e0b}:root[data-theme="day"] .b30 .hd{color:#9a3412}:root[data-theme="day"] .b30 .hd .ic{color:#c2410c}
+:root[data-theme="day"] .grade{color:#155e75;background:#ecfeff;border-color:#67e8f9}:root[data-theme="day"] .grade.lo{color:#92400e;background:#fffbeb;border-color:#f59e0b}
+:root[data-theme="day"] .rseg button.f.on{background:#fee2e2;border-color:#b91c1c;color:#991b1b}
+:root[data-theme="day"] #tl #tlT{color:#b91c1c}:root[data-theme="day"] .fwb{background:#e2e8f0}
+:root[data-theme="day"] aside [style*="color:#ffd33d"],:root[data-theme="day"] #tl [style*="color:#ffd33d"],:root[data-theme="day"] aside [style*="color:#fbbf24"],:root[data-theme="day"] #tl [style*="color:#fbbf24"]{color:#a16207!important}
+:root[data-theme="day"] aside [style*="color:#ffa657"],:root[data-theme="day"] aside [style*="color:#ffa198"],:root[data-theme="day"] aside [style*="color:#ff7b72"],:root[data-theme="day"] aside [style*="color:#f87171"],:root[data-theme="day"] aside [style*="color:#f85149"],:root[data-theme="day"] #tl [style*="color:#f87171"]{color:#b91c1c!important}
+:root[data-theme="day"] aside [style*="color:#d2a8ff"],:root[data-theme="day"] aside [style*="color:#c4b5fd"],:root[data-theme="day"] #tl [style*="color:#c4b5fd"]{color:#6d28d9!important}
+:root[data-theme="day"] aside [style*="color:#7ee787"],:root[data-theme="day"] aside [style*="color:#4ade80"],:root[data-theme="day"] #tl [style*="color:#4ade80"],:root[data-theme="day"] aside [style*="color:#39c5cf"]{color:#15803d!important}
+:root[data-theme="day"] .alert{background:#fff1f2;color:#9f1239;border-color:#fda4af}:root[data-theme="day"] .alert.mid{background:#fffbeb;color:#92400e;border-color:#f59e0b}
+:root[data-theme="day"] .vbtn.firebtn{background:#fff1f2;color:#9f1239;border-color:#f87171}:root[data-theme="day"] .vbtn.firebtn.on{background:#dc2626;color:#fff}
+:root[data-theme="day"] .fbtn.on,:root[data-theme="day"] .ftag.on{background:#f59e0b;color:#1a1200}:root[data-theme="day"] .vbtn.on{border-color:#c2410c;color:#c2410c}
+:root[data-theme="day"] #glmsg{background:#fffbeb;color:#78350f}:root[data-theme="day"] #glmsg button,:root[data-theme="day"] #glmsg small{color:#92400e}
+:root[data-theme="day"] .tagx{background:#ffe4e6;color:#9f1239;border-color:#fda4af}:root[data-theme="day"] .tagx.b{background:#dbeafe;color:#1e3a8a;border-color:#93c5fd}:root[data-theme="day"] .tagx.h{background:#fef3c7;color:#92400e;border-color:#f59e0b}
+/* ── 고대비: 굵은 테두리·순색 */
+:root[data-theme="hc"] .ops,:root[data-theme="hc"] .ph,:root[data-theme="hc"] .fireh,:root[data-theme="hc"] .b30{background:#000}
+:root[data-theme="hc"] .b30{border:2px solid #ffd400}:root[data-theme="hc"] .b30 .hd{color:#ffd400}
+:root[data-theme="hc"] .lb,:root[data-theme="hc"] .co .bx{background:#000!important;color:#fff!important;font-weight:800}
+:root[data-theme="hc"] .co .bx,:root[data-theme="hc"] .lb{border-width:2px}
+:root[data-theme="hc"] .vbtn.on,:root[data-theme="hc"] #dock button.on{background:#ffd400!important;color:#000!important;border-color:#ffd400!important}:root[data-theme="hc"] #dock button.on small{color:#000}
+:root[data-theme="hc"] .fbtn.on,:root[data-theme="hc"] .ftag.on{background:#ffd400;color:#000}
+:root[data-theme="hc"] .alert{background:#000;border:2px solid #ff4d4d;color:#fff}
+:root[data-theme="hc"] .tab.on{border-bottom-width:3px;border-color:#ffd400}
+:root[data-theme="hc"] #fallback{background:#000}
+/* ── 좁은 화면 */
+@media (max-width:1400px){.app{grid-template-columns:296px minmax(0,1fr) 316px}.app.noL{grid-template-columns:0 minmax(0,1fr) 316px}.app.noR{grid-template-columns:296px minmax(0,1fr) 0}
+ .logo small{display:none}.tab{font-size:12px}}
+@media (max-width:1100px){
+ .app,.app.noL,.app.noR{grid-template-columns:0 minmax(0,1fr) 0}
+ aside{position:fixed;top:52px;bottom:30px;z-index:12;width:min(340px,88vw);box-shadow:0 10px 40px #000a;display:none}
+ aside.l{left:0}aside.r{right:0}
+ .app.showL aside.l,.app.showR aside.r{display:block}
+ #baddr,.stat,.logo>div{display:none}.bt{padding-left:10px}#btags .tagx:not(.h){display:none}
+}
+@media (max-width:640px){header{gap:6px;padding:7px 8px}.alert{font-size:12px;padding:4px 7px}.hgrp{display:none}}
+/* ── 인쇄(Ctrl+P): 화면 대신 A4 지휘 요약 1~2쪽(#printSheet — tools.js 가 인쇄 직전 채움) */
+#printSheet{display:none}
+@media print{
+ html,body{height:auto;overflow:visible;background:#fff!important;color:#0f172a}
+ .app,#modal,#boot,#mkTip,#evTip{display:none!important}
+ #printSheet{display:block}
+}
+</style>
+</head>
+<body>
+<div id="boot" role="status" aria-live="polite"><div class="sp"></div><b>3D 지휘화면 준비 중…</b><div class="s" id="bootMsg">건물 자료를 불러와 3D 모델을 만들고 있습니다(보통 수 초)</div></div>
+<script>window.addEventListener('error',function(e){var b=document.getElementById('boot');if(b&&!b.classList.contains('done')){b.classList.add('err');b.querySelector('b').textContent='화면을 여는 중 문제가 생겼습니다';document.getElementById('bootMsg').innerHTML='최신 Chrome 또는 Edge 로 다시 열어 보세요. 그래도 안 되면 주소 끝에 <b>?nogl</b> 을 붙여 2D 보기로 여세요.<br><small>'+String(e.message||'').replace(/[<>&]/g,'')+'</small>';}});try{var t=localStorage.getItem('firebim.theme');if(t)document.documentElement.dataset.theme=t;var z=parseFloat(localStorage.getItem('firebim.fz'));if(z>0.7&&z<1.6){document.documentElement.style.setProperty('--fz',z);document.documentElement.style.setProperty('--lz',z);}}catch(e){}</script>
+<div class="app" id="app">
+ <header>
+  <div class="logo"><div class="mark" aria-hidden="true">AI</div><div><small>건축물 지휘정보 시스템 · BIM(IFC4)</small><b>AI Building Command View</b></div></div>
+  <button class="ptg" id="tgL" title="왼쪽 패널 열기/닫기" aria-label="왼쪽 정보 패널 열기/닫기" aria-controls="left">☰ 정보</button>
+  <div class="bt"><div class="nm"><h1 id="bname"></h1><span id="btags"></span></div><span id="baddr"></span></div>
+  <div class="hdr-r">
+   <span class="stat" id="bstat">자동 변환 · 검수 전</span>
+   <button class="alert" id="bissue" title="확인사항 보기">⚠ 확인 필요 <b id="nIssues">0</b></button>
+   <div class="hgrp" role="group" aria-label="화면 표시 설정">
+    <button class="ptg" id="thBtn" title="화면 테마 바꾸기: 야간 → 주간 → 고대비" aria-label="화면 테마 바꾸기 (현재 야간)"></button>
+    <button class="ptg" id="fzDn" title="글자 작게" aria-label="글자 작게"></button>
+    <button class="ptg" id="fzUp" title="글자 크게" aria-label="글자 크게"></button>
+    <button class="ptg" id="prBtn" title="A4 지휘 요약 인쇄 (Ctrl+P)" aria-label="A4 지휘 요약 인쇄"></button>
+   </div>
+   <button class="ptg" id="tgR" title="오른쪽 패널 열기/닫기" aria-label="오른쪽 층 상세 패널 열기/닫기" aria-controls="right">층 상세 ▸</button></div>
+ </header>
+ <aside class="l" id="left" aria-label="건물 정보">
+  <div class="tabs" role="tablist" aria-label="건물 정보 탭"><button class="tab on" data-t="issues" role="tab" aria-selected="true" aria-controls="tp-issues">확인사항</button><button class="tab" data-t="overview" role="tab" aria-selected="false" aria-controls="tp-overview">개요</button><button class="tab" data-t="haz" role="tab" aria-selected="false" aria-controls="tp-haz">위험물·설비</button><button class="tab" data-t="entry" role="tab" aria-selected="false" aria-controls="tp-entry">진입</button><button class="tab" data-t="basis" role="tab" aria-selected="false" aria-controls="tp-basis">원리·근거</button></div>
+  <div class="tabp" id="tp-issues" role="tabpanel"><p class="muted sm" style="margin-top:0">정보카드 ↔ 도면 ↔ 건축물대장·부지를 서로 대조해 찾은 사항입니다. 빨강 = 출동 전 확인, 주황 = 현장 확인.</p><div class="ifilt" id="ifilt"></div><div id="issues"></div>
+   <div id="djSec" style="display:none"><h4>건축물대장 3자 교차검증 (대장 ↔ 정보카드 ↔ 도면)</h4><div id="djPanel"></div></div></div>
+  <div class="tabp" id="tp-overview" role="tabpanel" hidden><div id="bInfo"></div>
+   <div id="cardSec" style="display:none"><h4>정보카드 건물개황 (표준양식 ①~⑨)</h4><div id="cardPanel"></div></div>
+   <h4>층별 용도</h4><div id="flList"></div>
+   <h4>모델 정보</h4><div class="note" id="src" style="margin-top:0"></div></div>
+  <div class="tabp" id="tp-haz" role="tabpanel" hidden><div id="hazBox"></div>
+   <h4>소방시설 — 건물 전체 (정보카드 수량 · 위치 확실성)</h4><div id="facAll"></div>
+   <div id="zoneSec" style="display:none"><h4>경계구역 (자동화재탐지설비 회로)</h4><div id="zonePanel"></div></div></div>
+  <div class="tabp" id="tp-entry" role="tabpanel" hidden><div id="entryBox"></div>
+   <div id="siteSec" style="display:none"><h4>외부 부서 위치 (소방차·사다리차·소방용수)</h4><div id="sitePanel"></div></div>
+   <div id="evSec"><h4>대피로 · 진입로 (실별 보행거리)</h4><div id="evPanel"></div></div></div>
+  <div class="tabp" id="tp-basis" role="tabpanel" hidden><p class="muted sm" style="margin-top:0">이 화면은 아래 순서로 자동 생성되었습니다.</p><div id="howBody"></div>
+   <h4>활동계획 기준값 (SOP 설정 · 가정값)</h4><div id="actBox"></div>
+   <h4>범례 — 위치 확실성</h4><div class="sm"><span class="fcert located">위치 확인</span> 도면 기호에서 찾은 위치 · <span class="fcert estimated">위치 추정</span> NFPC/NFTC 규칙으로 만든 후보 · <span class="fcert present">수량만</span> 정보카드 수량(위치 없음)</div>
+   <h4>한계</h4><p class="sm muted" id="limits"></p></div>
+ </aside>
+ <main id="stage" aria-label="3D 건물 화면">
+  <canvas id="c" role="img" aria-label="건물 3D 모델 — 마우스 끌기 회전, 휠 확대, 층 버튼으로 층 선택" tabindex="0"></canvas><div id="labels"></div>
+  <div class="toolbar" id="layers" role="group" aria-label="표시 레이어"></div><button id="layMore" hidden aria-expanded="false" aria-controls="layers" title="나머지 레이어 보기"></button>
+  <div class="views" role="toolbar" aria-label="보기 전환">
+   <button class="vbtn" id="vAll" title="건물 전체 (Esc)" aria-label="건물 전체 보기">⌂ 전체</button>
+   <button class="vbtn" id="vExp" title="층 사이를 벌려 모든 층을 봄" aria-label="층 분리 보기">층 분리</button>
+   <button class="vbtn" id="vOne" title="선택 층만 위에서 · 평면도 겹침" aria-label="단층 평면 보기">단층 평면</button>
+   <button class="vbtn firebtn" id="bFire" title="화점을 지정해 진입·호스·대피·인명검색 계산 (F)" aria-label="화재 가정 — 화점 지정">🔥 화재 가정</button>
+   <button class="vbtn sm" id="vTop" title="위에서 보기" aria-label="위에서 보기">⤓ 위</button><button class="vbtn sm" id="vIso" title="입체로 보기" aria-label="입체로 보기">◩ 입체</button>
+  </div>
+  <div id="fbar" role="toolbar" aria-label="층 선택" aria-orientation="vertical"></div>
+  <button id="compass" title="북쪽 위로" aria-label="나침반 — 누르면 북쪽을 위로"><span aria-hidden="true">N</span><i aria-hidden="true"></i></button>
+  <div id="info" role="dialog" aria-label="선택한 객체 정보"></div><div id="tip" role="tooltip"></div><div id="mkTip" role="dialog" aria-label="표식 설명"></div>
+  <div id="dock" role="toolbar" aria-label="도구" aria-orientation="vertical">
+   <button data-tool="section" title="단면 — 가로·세로로 잘라 보기 (S)" aria-label="단면 (S)">✂<small>단면</small></button>
+   <button data-tool="xray" title="투시(X-ray) — 벽을 거의 투명하게, 시설·경로 강조 (X)" aria-label="투시 (X)">◎<small>투시</small></button>
+   <button data-tool="isolate" title="층 격리 — 고른 층만 진하게, 나머지는 윤곽만 (I)" aria-label="층 격리 (I)">▣<small>격리</small></button>
+   <span class="sep" aria-hidden="true"></span>
+   <button data-tool="measure" title="거리 재기 — 바닥 두 점(직선·보행) (M)" aria-label="거리 재기 (M)">📏<small>거리</small></button>
+   <button data-tool="area" title="실 면적 — 실을 누름 (A)" aria-label="실 면적 (A)">▦<small>면적</small></button>
+   <button data-tool="follow" title="진입로 따라가기 — 1인칭 (G)" aria-label="진입로 따라가기 (G)">🎥<small>따라가기</small></button>
+   <button data-tool="minimap" title="미니맵 켜고 끄기 (N)" aria-label="미니맵 (N)">🗺<small>미니맵</small></button>
+   <span class="sep" aria-hidden="true"></span>
+   <button data-tool="shot" title="화면 저장 PNG (P)" aria-label="화면 저장 PNG (P)">📷<small>저장</small></button>
+   <button data-tool="brief" title="한 장 브리핑(인쇄용 HTML) (B)" aria-label="한 장 브리핑 저장 (B)">📄<small>브리핑</small></button>
+   <span class="sep" aria-hidden="true"></span>
+   <button data-tool="shadow" title="그림자 켜고 끄기 (H) — 느린 PC 는 끄기" aria-label="그림자 (H)">◐<small>그림자</small></button>
+   <button data-tool="lowq" title="저사양 모드 — 해상도·효과 줄임 (L)" aria-label="저사양 모드 (L)">⚡<small>저사양</small></button>
+   <button data-tool="help" title="단축키·화면 속도 (?)" aria-label="단축키 도움말 (?)">?<small>도움말</small></button>
+  </div>
+  <div id="secPanel" hidden role="dialog" aria-label="단면 설정"><div class="sp-h"><b>✂ 단면</b><button id="secClose" title="닫기(Esc)" aria-label="단면 닫기">✕</button></div>
+   <label class="tg"><input type="checkbox" id="secH" checked>가로(높이) 단면</label> <span class="k" id="secHt"></span><input type="range" id="secHv" min="0" max="1000" value="380" aria-label="가로 단면 높이">
+   <label class="tg"><input type="checkbox" id="secV">세로 단면</label> <select id="secAx" aria-label="세로 단면 방향"><option value="x">동서 위치</option><option value="y">남북 위치</option></select> <button class="sb" id="secFlip">반대쪽</button>
+   <span class="k" id="secVt"></span><input type="range" id="secVv" min="0" max="1000" value="500" aria-label="세로 단면 위치"><div class="note" style="margin-top:0">빨간 빗금 = 잘린 벽·문 위 인방·바닥판</div></div>
+  <div id="tl" hidden role="region" aria-label="화재 확산·대원 이동 시간축"><button id="tlPlay" title="재생/멈춤 (Space)" aria-label="재생">▶</button><div class="tlm"><div id="tlTicks"></div><input type="range" id="tlR" min="0" max="900" step="1" value="0" title="화재 경과 시간" aria-label="화재 경과 시간(초)"></div><b id="tlT" aria-live="off">00:00</b>
+   <div class="tlb"><select id="tlSp" title="재생 배속" aria-label="재생 배속"><option value="10">×10</option><option value="30" selected>×30</option><option value="60">×60</option></select><label class="tg"><input type="checkbox" id="tlSmoke" checked>연기</label><label class="tg"><input type="checkbox" id="tlCrew" checked>대원</label><button id="tlFollow" title="진입로 따라가기 (G)" aria-label="진입로 따라가기">🎥</button></div>
+   <div id="flegend"><span class="lgh">경로</span><span><i style="background:#ffd33d"></i>진입</span><span><i style="background:#ff6b35"></i>화재층 진입</span><span><i style="background:#ff4d4f"></i>호스(흰 점 = 1본)</span><span><i style="background:#3fb950"></i>대피 방향</span><span><i style="background:#d2a8ff;border-radius:50%"></i>귀환 한계점</span><span><i style="background:#6e40c9;border-radius:50%"></i>인명검색 순서</span><span id="ttuLeg" style="gap:8px"><span class="lgh">곤란 도달</span><i style="background:#991b1b"></i>2분↓ <i style="background:#dc2626"></i>5분↓ <i style="background:#f97316"></i>10분↓ <i style="background:#facc15"></i>15분↓ <i style="background:#9ca3af"></i>연기 <i style="background:#3fb950"></i>그 시각 대피로</span></div>
+   <div id="tlInfo" aria-live="polite"></div></div>
+  <canvas id="mini" title="미니맵 — 누르거나 끌면 그 지점으로 이동 (N 켜고 끄기)" role="img" aria-label="미니맵 — 누르면 그 지점으로 이동"></canvas>
+  <div id="volLeg" hidden></div>
+  <div id="follow" hidden role="region" aria-label="진입로 따라가기"><div id="fwTxt"></div><div class="fwb"><i id="fwBar"></i></div><div class="fwc"><button id="fwPause" aria-label="따라가기 멈춤">⏸</button><button data-sp="2">×2</button><button data-sp="6" class="on">×6</button><button data-sp="15">×15</button><button id="fwStop">Esc 끝내기</button></div></div>
+  <canvas id="fallback" hidden aria-label="2D 평면 보기"></canvas><div id="glmsg" hidden role="alert"><div id="glTxt">이 PC 브라우저에서 3D(WebGL 2)를 쓸 수 없어 <b>2D 평면 보기</b>로 표시합니다 — 층 고르기·화점·경로·거리 재기·브리핑은 그대로 사용<small>3D 를 쓰려면: Chrome/Edge 설정 → 시스템 → ‘가능한 경우 그래픽 가속 사용’ 켜기 → 브라우저 다시 시작</small></div><button id="glX" aria-label="안내 닫기" title="닫기">✕</button></div>
+  <div id="help" hidden role="dialog" aria-modal="true" aria-label="단축키와 조작"><div class="hb"><div style="display:flex;justify-content:space-between"><b style="font-size:14px">단축키 · 조작</b><button class="x" aria-label="도움말 닫기">✕</button></div>
+   <table><tr><td><kbd>1</kbd>~<kbd>9</kbd></td><td>지상 1~9층 고르기 · <kbd>0</kbd> 지하1층 · <kbd>Shift</kbd>+숫자 지하층 · <kbd>↑</kbd><kbd>↓</kbd> 위·아래 층</td></tr>
+   <tr><td><kbd>F</kbd></td><td>화재 가정(화점 지정) · <kbd>Space</kbd> 확산·대원 재생/멈춤</td></tr><tr><td><kbd>X</kbd> <kbd>S</kbd> <kbd>I</kbd></td><td>투시 · 단면 · 층 격리</td></tr>
+   <tr><td><kbd>M</kbd> <kbd>A</kbd></td><td>거리 재기 · 실 면적 · <kbd>Delete</kbd> 잰 값 지우기</td></tr><tr><td><kbd>G</kbd> <kbd>N</kbd></td><td>진입로 따라가기(1인칭) · 미니맵</td></tr><tr><td><kbd>P</kbd> <kbd>B</kbd></td><td>화면 저장(PNG) · 한 장 브리핑 · <kbd>Ctrl</kbd>+<kbd>P</kbd> A4 지휘 요약 인쇄</td></tr>
+   <tr><td><kbd>H</kbd> <kbd>L</kbd></td><td>그림자 · 저사양 모드</td></tr><tr><td><kbd>T</kbd> <kbd>+</kbd> <kbd>−</kbd></td><td>화면 테마(야간·주간·고대비) · 글자 크게·작게</td></tr><tr><td><kbd>Tab</kbd></td><td>버튼 사이 이동(노란 테두리) · <kbd>Enter</kbd> 누름</td></tr><tr><td><kbd>Esc</kbd></td><td>따라가기·도구·단면 끝내기 → 전체 보기</td></tr>
+   <tr><td>마우스</td><td>왼쪽 끌기 회전 · 오른쪽 끌기 이동 · 휠 확대 · 번호 표식에 올리면 설명</td></tr><tr><td>터치(태블릿)</td><td>한 손가락 회전 · 두 손가락 벌리기 확대 · 두 손가락 끌기 이동 · 두 손가락 비틀기 수평 회전 · 표식 누르면 설명</td></tr></table>
+   <h4>화면 속도</h4><div class="sm" id="perfBox"></div><div class="note">느리면 해상도를 자동으로 낮춥니다(24fps 미만 2초). 저사양 모드는 접촉 음영·테두리 빛·실 입체·그림자를 끕니다.</div></div></div>
+  <div id="hint" role="status" aria-live="polite">화재가 난 위치를 선택한 층 바닥에서 클릭하세요</div>
+ </main>
+ <aside class="r" id="right" aria-label="층 정보와 화재 대응">
+  <section class="b30 open" id="b30" aria-label="출동 전 30초 요약"></section>
+  <div class="rseg" id="rseg" hidden role="tablist"><button data-r="info" role="tab">층 정보</button><button class="f" data-r="fire" role="tab">🔥 화재 대응</button></div>
+  <div id="rpInfo">
+   <div id="rpHead"></div>
+   <div class="sec ops" id="key"></div>
+   <div id="rpFloor">
+    <div class="sec"><details class="more" id="detSec"><summary><span id="flTitle">도면 자동 검출</span></summary><div id="flInfo"></div></details></div>
+    <div class="sec" id="facSec" style="display:none"><h4>소방시설 — 이 층 정보카드 전 항목 (시행령 별표 1 분류 · 위치 확실성)</h4><div id="facPanel"></div></div>
+   </div>
+  </div>
+  <div id="rpFire" hidden>
+   <div class="ph fireh"><div class="ph-t">🔥 화재 가정</div><div class="ph-s" id="fireSub">층을 고른 뒤 바닥을 눌러 화점을 지정하세요</div>
+    <div class="ph-b"><button class="pri" id="bRepick">🔥 다시 지정</button><button id="bTrain" title="훈련: 무작위 화점">🎲 훈련 화점</button><button id="bClr">해제</button></div></div>
+   <div class="sec"><div id="fireRes"></div></div>
+   <div class="sec" id="simSec" hidden><details class="more" id="simDet" open><summary>🔥 연기·화염 확산 가정 · 대원 이동 <span class="cnt k">예시 모델</span></summary><div id="simPanel"></div></details></div>
+   <div class="sec"><h4>훈련 모드 (채점)</h4><div id="trainPanel"></div></div>
+   <div class="sec" id="alSec" style="display:none"><h4>수신기 경보 → 화점 후보(경계구역)</h4>
+    <div class="row"><select id="alFl" aria-label="경보 층"></select><span class="k" style="align-self:center">회로</span><input id="alNo" type="number" min="1" value="1" aria-label="경보 회로 번호"><button class="fire" id="alGo">경보 구역</button><button id="alRnd">훈련: 무작위 경보</button></div>
+    <div class="note" id="alNote"></div></div>
+  </div>
+ </aside>
+ <footer id="foot"></footer>
+</div>
+<div id="printSheet" aria-hidden="true"></div>
+<div id="hidden" aria-hidden="true">
+ <input type="checkbox" id="tWall" checked><input type="checkbox" id="tDoor" checked><input type="checkbox" id="tTex" checked><input type="checkbox" id="tEvac">
+ <input type="checkbox" id="tSpace"><input type="checkbox" id="tEq" checked><input type="checkbox" id="tFac" checked><input type="checkbox" id="tLab" checked>
+ <input type="checkbox" id="tZone"><input type="checkbox" id="tSite"><input type="checkbox" id="tEvR" checked><input type="checkbox" id="tEntR" checked><input type="checkbox" id="tRoom" checked>
+</div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mbox"><div class="mh"><b id="mtitle">평면도</b><span id="mcap"></span><span class="sp"></span><button id="zout" aria-label="축소">－</button><button id="zin" aria-label="확대">＋</button><button id="mclose">닫기</button></div>
+ <div id="mview"><img id="mimg" alt="원본 평면도"></div></div></div>
+<script>window.__DATA__=@@DATA@@;</script>
+<script>__JS__</script>
+</body>
+</html>
