@@ -1,0 +1,39 @@
+FireBIM convert 오류 · Python 3.13.16 · linux
+Traceback (most recent call last):
+  File "/home/claude/firebim_public/offline/launch.py", line 379, in cmd_convert
+    try: done.append(convert(p, out=(os.path.join(out, os.path.splitext(os.path.basename(p))[0]) if out and len(groups) > 1 else out), log=say, model=model, extras=ex))
+                     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/claude/firebim_public/review/convert.py", line 113, in convert
+    res = run(src_pdf, keep=True, model=bool(model), **aux)
+  File "/home/claude/firebim_public/firebim/pipeline.py", line 139, in run
+    RR = RC.process(real_raw, info)
+  File "/home/claude/firebim_public/firebim/realcard.py", line 1795, in process
+    return dict(_pmap(s2, [(i, rp, R) for (i, rp), R in zip(raw_plans, Rs)]))
+                ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/claude/firebim_public/firebim/realcard.py", line 1713, in _pmap
+    return list(ex.map(lambda a: fn(*a), items))
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 625, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 318, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 460, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/concurrent/futures/_base.py", line 402, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/claude/firebim_public/firebim/realcard.py", line 1713, in <lambda>
+    return list(ex.map(lambda a: fn(*a), items))
+                                 ~~^^^^
+  File "/home/claude/firebim_public/firebim/realcard.py", line 1787, in s2
+    res = stage2(R, rp, info, s)
+  File "/home/claude/firebim_public/firebim/realcard.py", line 1219, in stage2
+    out = dict(rooms=list(R['rooms_ocr']), stairs=list(rule_st), elevators=RS.detect_elevators(g, None, R['words'], ppm=s))
+                                                                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/claude/firebim_public/firebim/realsym.py", line 672, in detect_elevators
+    for x1, y1, x2, y2 in ls[:, 0]:
+        ^^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable numpy.int32 object

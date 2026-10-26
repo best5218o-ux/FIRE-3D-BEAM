@@ -1,5 +1,5 @@
 # 변환 실행
-pymupdf>=1.28
+pymupdf>=1.28,<2      # 2.0 은 표 인식(find_tables) 결과가 달라 정보카드 표준양식을 못 읽음
 opencv-python-headless>=4.13
 numpy>=2.0
 shapely>=2.1
