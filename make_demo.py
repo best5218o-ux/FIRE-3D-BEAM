@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """정보카드 PDF → 3D 지휘화면(HTML 1개) + IFC4.   python make_demo.py data/xxx/card.pdf out/demo/name [--model]
---model (또는 FIREBIM_MODEL=1): STR 모델로 규칙 벽 교차검증·문/진입구 보충 → 불일치는 확인사항·검수 항목으로"""
+--model (또는 FIRE3DBEAM_MODEL=1): STR 모델로 규칙 벽 교차검증·문/진입구 보충 → 불일치는 확인사항·검수 항목으로"""
 import sys, os, json, time
-from firebim.pipeline import run
-from firebim.export import build, export_ifc, to_viewer_bim
+from fire3dbeam.pipeline import run
+from fire3dbeam.export import build, export_ifc, to_viewer_bim
 from build_viewer import make as make_html
 
 def main(pdf, stem, dong_files=None, **opt):
@@ -19,12 +19,12 @@ def main(pdf, stem, dong_files=None, **opt):
 
 if __name__ == '__main__':
     # 선택: --daejang 대장.json|pdf  --site site.json  --zones 경계구역일람도.json
-    if '--model' in sys.argv: sys.argv.remove('--model'); os.environ['FIREBIM_MODEL'] = '1'
+    if '--model' in sys.argv: sys.argv.remove('--model'); os.environ['FIRE3DBEAM_MODEL'] = '1'
     # 여러 동 표준양식 카드: --dong 2 (두 번째 동만) | --dong all (평면도가 있는 동마다 STEM_N동.html, 화면에 동 선택 링크)
     a = sys.argv[3:]; opt = {k[2:].replace('zones', 'ilramdo'): v for k, v in zip(a[::2], a[1::2])}
     dg = opt.pop('dong', None)
     if dg == 'all':
-        from firebim.card import parse_card, extract_plans
+        from fire3dbeam.card import parse_card, extract_plans
         info, doc = parse_card(sys.argv[1])
         n = len(info.get('동목록') or [1]); have = {p.get('dong', 0) for p in extract_plans(doc)}
         base = os.path.basename(sys.argv[2])

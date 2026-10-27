@@ -3,12 +3,12 @@
 정답 실(방)마다: (1) 엔진 경로 존재(벽 통과 없이) (2) 가장 가까운 목표(계단/옥외 출구) 일치
 (3) 중심점 보행거리·최원점 보행거리 오차 (허용 max(2 m, 10%)) (4) 기준 초과 판정 일치.
 층마다: 도면 대피방향 화살표 검출 재현율·정밀도(선 길이, 0.6 m 허용).
-두 격자는 같은 규칙(firebim/evac.make_grid)·같은 보행거리 산정(시선 당김)을 쓴다 → 차이는 인식 오차(벽·문·계단·외곽)에서만 생긴다."""
+두 격자는 같은 규칙(fire3dbeam/evac.make_grid)·같은 보행거리 산정(시선 당김)을 쓴다 → 차이는 인식 오차(벽·문·계단·외곽)에서만 생긴다."""
 import math
 import numpy as np
 from shapely.geometry import LineString, Point, box
 from shapely.ops import unary_union
-from firebim.evac import make_grid, mcp, pull, _targets_cells, WALL
+from fire3dbeam.evac import make_grid, mcp, pull, _targets_cells, WALL
 
 TOL_ABS, TOL_REL = 2.0, 0.10
 

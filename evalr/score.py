@@ -210,8 +210,8 @@ def score_ext(gt, res):
         out['daejang_planted'] = len(gt.get('daejang_planted', []))
     # 12) 경계구역 수 검증: 정답 도형(층 외곽−계단·승강로)으로 계산한 NFTC 최소 구역 수 < 카드 회로 수 인 층 = 플래그 정답
     if 'zones' in res and 'error' not in res['zones']:
-        from firebim import zones as Z
-        from firebim.sop import CFG
+        from fire3dbeam import zones as Z
+        from fire3dbeam.sop import CFG
         agree = n = tp = fn = fp_ = 0
         for fid, f in gt['floors'].items():
             nc = gt['card']['fac'].get(fid, {}).get(Z.CIRCUIT_KEY)

@@ -3,8 +3,8 @@
 기존 파이프라인 기본 경로는 건드리지 않는다.  python -m strseg.synth_check [n_buildings] [--out out_str/synth]"""
 import os, sys, json, glob, argparse
 import numpy as np, cv2, pymupdf
-from firebim.card import extract_plans
-from firebim import str_seg as SS
+from fire3dbeam.card import extract_plans
+from fire3dbeam import str_seg as SS
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(); ap.add_argument('n', type=int, nargs='?', default=6); ap.add_argument('--out', default='out_str/synth')

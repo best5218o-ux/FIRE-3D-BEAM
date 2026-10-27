@@ -6,7 +6,7 @@ rem  Review: drop *_corrections.json (apply + rebuild) or a result folder/PDF (o
 rem  All logic (Korean messages, paths) is in app\offline\launch.py
 rem ==========================================================================
 set "ROOT=%~dp0"
-set "FIREBIM_HOME=%ROOT:~0,-1%"
+set "FIRE3DBEAM_HOME=%ROOT:~0,-1%"
 set "PYTHONUTF8=1"
 set "PYTHONNOUSERSITE=1"
 set "PY=%ROOT%python\python.exe"

@@ -58,7 +58,7 @@ def _j(o):
 
 # ─────────────── 검출 실행(캐시) ───────────────
 def run_rule(split, tag, limit=None, **kw):
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     od = os.path.join(CDIR, tag); os.makedirs(od, exist_ok=True)
     its = items(split)[:limit] if limit else items(split)
     t00 = time.time()
@@ -78,7 +78,7 @@ def run_rule(split, tag, limit=None, **kw):
 
 
 def run_model(split, tag, limit=None, onnx=None):
-    from firebim import spa_seg as SS
+    from fire3dbeam import spa_seg as SS
     onnx = onnx or SS.MODEL
     od = os.path.join(CDIR, tag); os.makedirs(od, exist_ok=True)
     its = items(split)[:limit] if limit else items(split)
@@ -116,7 +116,7 @@ HANGUL = re.compile('[가-힣]')
 
 def rematch_rooms(res):
     """캐시된 OCR 글자(words)로 현재 realsym.select_rooms 다시 적용(OCR 재실행 없이 어휘·임계 조정 평가)"""
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     items = [dict(text=w['text'], box=w['box'], xy=[(w['box'][0] + w['box'][2]) / 2, (w['box'][1] + w['box'][3]) / 2],
                   how=w.get('how') or 'g', conf=w.get('conf', 60)) for w in res.get('words', []) if w.get('how') != '2line']
     keep, _ = RS.select_rooms(items, want_area=False)
@@ -124,7 +124,7 @@ def rematch_rooms(res):
 
 
 def fuse_res(rr, mr):
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     out = dict(rooms=[dict(r) for r in rr['rooms']], stairs=[dict(d) for d in rr['stairs']], elevators=[dict(d) for d in rr['elevators']],
                ocr_up=rr.get('ocr_up', 2.0))                 # SPA 원천은 긴 변 2048 축소본 → realsym 'auto' 는 2배 확대 OCR
     mr = dict(mr); mr.setdefault('scale', 1024.0 / 2048)    # 모델 입력 배율(긴 변 2048 시트 → 1024)

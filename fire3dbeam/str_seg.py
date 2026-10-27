@@ -7,12 +7,12 @@
 작업 해상도: 원본 300dpi 기준 ×0.2476 (≈74dpi, 1/100 도면이면 1 m ≈ 29 px). 입력 dpi(src_dpi) 또는 축척(px_per_m)으로 맞춘다.
 
 사용:
-  from firebim.str_seg import StrSeg, vectorize
+  from fire3dbeam.str_seg import StrSeg, vectorize
   seg = StrSeg()                                  # models/str_seg.onnx
   lab, prob, k = seg.predict(gray, src_dpi=300)   # lab: 작업 해상도 0 배경·1 벽·2 창·3 문, k = 작업/입력 배율
   v = vectorize(lab, px_per_m=None, P=seg.vec_param)   # (P 생략 = 기본 모델 .json 의 vec_param) {walls:[{o,c,a,b,t}], walls_diag:[...], doors:[...], windows:[...]} (작업 px, 또는 m)
                                                   # = vectorize_v2 (2026-09-30). vectorize_v1 = 이전(짝수 커널 열기로 벽이 +1px 밀리던 버전, 비교용)
-  python -m firebim.str_seg 도면.png 출력.png [--dpi 300]   # 겹침 그림
+  python -m fire3dbeam.str_seg 도면.png 출력.png [--dpi 300]   # 겹침 그림
 """
 import os, sys, json
 import numpy as np, cv2

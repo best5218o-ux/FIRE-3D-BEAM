@@ -49,7 +49,7 @@ def eval_shape(it):
 
 # ───────────────────────── 예측: 기준(realplan) ─────────────────────────
 def pred_baseline(it):
-    from firebim import realplan as R, realsym as S
+    from fire3dbeam import realplan as R, realsym as S
     g, es, r = eval_shape(it)
     gF = cv2.resize(g, (it['w'], it['h']), interpolation=cv2.INTER_CUBIC)       # realplan 은 300dpi 원본 기준
     q = R.minpool(gF, 4); regs, caps, fr = R.sheet_layout(q)
@@ -88,7 +88,7 @@ _SEG = None
 
 def pred_model(it, onnx=None):
     global _SEG
-    from firebim import str_seg as SS
+    from fire3dbeam import str_seg as SS
     if _SEG is None: _SEG = SS.StrSeg(onnx or SS.MODEL, threads=2)
     g, es, r = eval_shape(it)
     t = time.time()
@@ -111,7 +111,7 @@ def vec_scale(ws, es):
 
 # ───────────────────────── 채점 ─────────────────────────
 def _skel(m):
-    from firebim.str_seg import skeleton
+    from fire3dbeam.str_seg import skeleton
     return skeleton(m) if m.any() else m.astype(np.uint8)
 
 
@@ -295,7 +295,7 @@ def overlay(stem, out):
     ge = cv2.resize(g, (es[1], es[0]), interpolation=cv2.INTER_AREA)
     s = it['f'] * r; anns = D.load_ann(stem)
     gt = D.raster(anns, es, s); v = D.valid_mask(anns, es, s)
-    from firebim.str_seg import overlay as ov
+    from fire3dbeam.str_seg import overlay as ov
     tiles = []
     for nm, lab in [('GT', gt)] + [(m, cv2.imread(os.path.join(pred_dir(out, m), stem + '.png'), 0)) for m in ('baseline', 'model', 'model_vec')]:
         if lab is None: continue

@@ -6,58 +6,58 @@
 
   1) 축척 = 여러 출처 합의(신뢰도 가중):
      sheet  도면 시트 글자층(또는 OCR)의 'SCALE 1/150 (A3)' + 용지 크기 → px/m   (review/attach.py 가 캡션에 '[도면축척 … ppm=…]' 로 넘김)
-     dims   치수 사슬(firebim/realplan 치수 판독·합의)
+     dims   치수 사슬(fire3dbeam/realplan 치수 판독·합의)
      tags   창호 태그 '1.1X2.2'(폭×높이 m) ↔ 그 옆 STR 모델 문·창 개체 폭(px) — 3개 이상 같은 값이면 강함
      grid   다른 층(강한 축척)과 그리드선 간격 비교(같은 도면 세트)
      tread  계단 디딤판 간격(SPA 계단실 안 등간격 평행선) ÷ 0.28 m
      doors  STR 모델 문 폭 중앙값 ÷ 1.04 m(realplan.DOOR_MM) — 약함
      area   정보카드 층 면적 ↔ **건물 덩어리 외곽**(아래 3) — 마지막 수단
      출처끼리 ±10% 넘게 갈리면 플래그 scale_disagree(검수).
-  2) 벽·창·문 = STR 분할 모델(firebim/str_seg, xcheck.model_plan 캐시 공유) 벡터, 계단·승강기 = SPA v3.1 하이브리드(firebim/spa_seg)
-     + 규칙(UP/DN·EV 글자 확인, firebim/realsym), 실명 = realsym OCR(비주거 어휘 포함).
+  2) 벽·창·문 = STR 분할 모델(fire3dbeam/str_seg, xcheck.model_plan 캐시 공유) 벡터, 계단·승강기 = SPA v3.1 하이브리드(fire3dbeam/spa_seg)
+     + 규칙(UP/DN·EV 글자 확인, fire3dbeam/realsym), 실명 = realsym OCR(비주거 어휘 포함).
   3) 건물 덩어리 외곽(mass): 벽∪창∪문 장벽 → 빈 공간 성분 → 바깥(그림 가장자리에 닿음)에서 시작해 '마당형' 성분을 벗김
      (바깥과 맞닿은 경계에 창·문이 하나도 없고 바깥 접촉 비율 ≥0.3 → 대지선·주차구획·조경·옥상정원 구획). 창 사이 얇은 외벽도 창∪벽으로 닫힘.
      외부 출입문 = 바깥(벗긴 마당 포함)과 실내를 잇는 모델 문 개체.
-  4) 층 정합 기준점(anchors) = 계단·승강기 중심 + 그리드선(+ 그리드 버블 이름 X1·Y1) → firebim/align.align_real.
+  4) 층 정합 기준점(anchors) = 계단·승강기 중심 + 그리드선(+ 그리드 버블 이름 X1·Y1) → fire3dbeam/align.align_real.
 
-끄기: FIREBIM_REALPLAN=0 (예전 동작: 범례 없는 도면도 가상 규칙 경로). 가상 정보카드 도면(범례·기호 있음)은 이 모듈을 부르지 않는다."""
+끄기: FIRE3DBEAM_REALPLAN=0 (예전 동작: 범례 없는 도면도 가상 규칙 경로). 가상 정보카드 도면(범례·기호 있음)은 이 모듈을 부르지 않는다."""
 import os, re, math
 os.environ.setdefault('OMP_THREAD_LIMIT', '1')     # tesseract OpenMP 끔: 2코어 공유 시 스레드 회전 대기로 4~5배 느려짐(판독 결과 동일, 2026-10-03)
 import numpy as np, cv2
 
-ENABLED = os.environ.get('FIREBIM_REALPLAN', '1') != '0'
+ENABLED = os.environ.get('FIRE3DBEAM_REALPLAN', '1') != '0'
 TREAD_M = 0.28            # 계단 디딤판 깊이 표준값(건축물 피난·방화구조 규칙: 공공 0.26~0.30 m)
 DOOR_M = 1.04             # STR 모델 문 개체 폭 중앙값(realplan.DOOR_MM, obj2 개발 60장)
 W = dict(sheet=1.0, sheet_guess=0.55, dims=0.8, dims_weak=0.4, tags3=0.8, tags2=0.5, tags1=0.2, grid=0.6, tread=0.3, doors=0.2, area=0.15)
 AGREE = 0.08              # 같은 축척으로 보는 상대 차(±8%)
 DISAGREE = 0.10           # 강한 출처끼리 이만큼 넘게 다르면 scale_disagree
 RERUN = 0.12              # 최종 축척이 모델을 돌린 축척과 이만큼 넘게 다르면 STR·SPA 다시
-OUTLIER_REJECT = os.environ.get('FIREBIM_SCALE_OUTLIER', '1') != '0'   # 한 층 혼자 갈리는 약한 축척 후보(태그 짝 등) 버리고 플래그 안 띄움(2026-10-03 2차)
-FUSE_TRIM = float(os.environ.get('FIREBIM_FUSE_TRIM', '0.04'))   # 축척 합의: 명시 출처 없을 때 가중 중앙값 ±4% 안만 평균(2026-10-03 2차) — 0 = 예전(무리 전체 가중 평균)
-TAG_V2 = os.environ.get('FIREBIM_TAG_V2', '1') != '0'          # 창호 태그 판독 2차(firebim/realtag.py: 칸 정리·어휘 맞춤·본보기 투표) — 0 = 예전 read_tags
-BUBBLE_V2 = os.environ.get('FIREBIM_BUBBLE_V2', '1') != '0'    # 그리드 버블 2차(축별 이름 꼴·순서 맞춤) — 0 = 예전 read_bubbles
-STR_SINGLE_PX = float(os.environ.get('FIREBIM_STR_SINGLE_MPX', '0')) * 1e6   # (시험용, 기본 끔) STR 한 번 실행 화소 예산(백만) — S 층당 STR 20→10 s 이지만 AI허브 STR 보류 30장 화소 F1 이 벽 .886→.885·문 .913→.910 로
+OUTLIER_REJECT = os.environ.get('FIRE3DBEAM_SCALE_OUTLIER', '1') != '0'   # 한 층 혼자 갈리는 약한 축척 후보(태그 짝 등) 버리고 플래그 안 띄움(2026-10-03 2차)
+FUSE_TRIM = float(os.environ.get('FIRE3DBEAM_FUSE_TRIM', '0.04'))   # 축척 합의: 명시 출처 없을 때 가중 중앙값 ±4% 안만 평균(2026-10-03 2차) — 0 = 예전(무리 전체 가중 평균)
+TAG_V2 = os.environ.get('FIRE3DBEAM_TAG_V2', '1') != '0'          # 창호 태그 판독 2차(fire3dbeam/realtag.py: 칸 정리·어휘 맞춤·본보기 투표) — 0 = 예전 read_tags
+BUBBLE_V2 = os.environ.get('FIRE3DBEAM_BUBBLE_V2', '1') != '0'    # 그리드 버블 2차(축별 이름 꼴·순서 맞춤) — 0 = 예전 read_bubbles
+STR_SINGLE_PX = float(os.environ.get('FIRE3DBEAM_STR_SINGLE_MPX', '0')) * 1e6   # (시험용, 기본 끔) STR 한 번 실행 화소 예산(백만) — S 층당 STR 20→10 s 이지만 AI허브 STR 보류 30장 화소 F1 이 벽 .886→.885·문 .913→.910 로
 #   조금 낮고(겹친 타일 평균 효과가 사라짐) Z 1층 외곽이 402→369 ㎡ 로 흔들려 채택 안 함. 대신 글자층 치수 범위(STR_ROI)만 돌림
-DIMS_MISS_STOP = int(os.environ.get('FIREBIM_DIMS_MISS_STOP', '2'))   # 치수 OCR 이 이만큼 층에서 실패하면 나머지 층은 치수 판독 생략(0 = 끔)
+DIMS_MISS_STOP = int(os.environ.get('FIRE3DBEAM_DIMS_MISS_STOP', '2'))   # 치수 OCR 이 이만큼 층에서 실패하면 나머지 층은 치수 판독 생략(0 = 끔)
 _DIMS_MISS = {}
-AREA_SKIP = os.environ.get('FIREBIM_AREA_SKIP', '1') != '0'
-STR_ROI = os.environ.get('FIREBIM_STR_ROI', '1') != '0'
-REAL_TILE = int(os.environ.get('FIREBIM_REAL_TILE', '0')) or None   # (시험용) STR 타일 크기(기본 = 모델 .json 1024)
-SKIP_BLANK = os.environ.get('FIREBIM_SKIP_BLANK', '1') != '0'   # STR 빈 종이 타일(잉크 < 0.02%) 건너뜀 — 결과 같음(배경), 여러 평면 시트 칸 여백(2026-10-03)
-EVEN_TILES = os.environ.get('FIREBIM_EVEN_TILES', '0') == '1'   # (시험용, 기본 끔) STR 타일을 고르게 나눔 — S 층당 23→18 s 이지만 작은 타일은 문맥이 줄어 옥탑 외곽이 96→188 ㎡ 로 흔들려 채택 안 함(2026-10-03)
-GROUP_DIMS = os.environ.get('FIREBIM_GROUP_DIMS', '1') != '0'   # 용지 없는 같은 시트 축척 묶음은 한 층 치수로 확인(2026-10-03)
-LAZY_DIMS = os.environ.get('FIREBIM_LAZY_DIMS', '1') != '0'
-PDF_TEXT = os.environ.get('FIREBIM_PDF_TEXT', '1') != '0'
-TEXT_AXES = os.environ.get('FIREBIM_TEXT_AXES', '1') != '0'    # 글자층의 원 없는 그리드 이름 줄을 버블처럼(2026-10-04, 새 세트 E 지붕층 정합)      # 벡터 도면 글자층을 OCR 대신(2026-10-03 2차 강건화, firebim/pdftext.py)
-S0_TREAD = os.environ.get('FIREBIM_S0_TREAD', '1') != '0'      # 임시 축척(모델 입력)에 규칙 디딤판 간격 사용   # 용지 명시 시트 축척이 있으면 치수 판독은 출처가 갈릴 때만
-WORKERS = int(os.environ.get('FIREBIM_REAL_WORKERS', '2'))     # 층별 1·2단계 동시 실행 스레드 수(OCR 은 별도 프로세스라 2코어를 함께 씀). 1 = 순차
+AREA_SKIP = os.environ.get('FIRE3DBEAM_AREA_SKIP', '1') != '0'
+STR_ROI = os.environ.get('FIRE3DBEAM_STR_ROI', '1') != '0'
+REAL_TILE = int(os.environ.get('FIRE3DBEAM_REAL_TILE', '0')) or None   # (시험용) STR 타일 크기(기본 = 모델 .json 1024)
+SKIP_BLANK = os.environ.get('FIRE3DBEAM_SKIP_BLANK', '1') != '0'   # STR 빈 종이 타일(잉크 < 0.02%) 건너뜀 — 결과 같음(배경), 여러 평면 시트 칸 여백(2026-10-03)
+EVEN_TILES = os.environ.get('FIRE3DBEAM_EVEN_TILES', '0') == '1'   # (시험용, 기본 끔) STR 타일을 고르게 나눔 — S 층당 23→18 s 이지만 작은 타일은 문맥이 줄어 옥탑 외곽이 96→188 ㎡ 로 흔들려 채택 안 함(2026-10-03)
+GROUP_DIMS = os.environ.get('FIRE3DBEAM_GROUP_DIMS', '1') != '0'   # 용지 없는 같은 시트 축척 묶음은 한 층 치수로 확인(2026-10-03)
+LAZY_DIMS = os.environ.get('FIRE3DBEAM_LAZY_DIMS', '1') != '0'
+PDF_TEXT = os.environ.get('FIRE3DBEAM_PDF_TEXT', '1') != '0'
+TEXT_AXES = os.environ.get('FIRE3DBEAM_TEXT_AXES', '1') != '0'    # 글자층의 원 없는 그리드 이름 줄을 버블처럼(2026-10-04, 새 세트 E 지붕층 정합)      # 벡터 도면 글자층을 OCR 대신(2026-10-03 2차 강건화, fire3dbeam/pdftext.py)
+S0_TREAD = os.environ.get('FIRE3DBEAM_S0_TREAD', '1') != '0'      # 임시 축척(모델 입력)에 규칙 디딤판 간격 사용   # 용지 명시 시트 축척이 있으면 치수 판독은 출처가 갈릴 때만
+WORKERS = int(os.environ.get('FIRE3DBEAM_REAL_WORKERS', '2'))     # 층별 1·2단계 동시 실행 스레드 수(OCR 은 별도 프로세스라 2코어를 함께 씀). 1 = 순차
 
 
 def available():
     if not ENABLED: return False
     try:
         import onnxruntime  # noqa: F401
-        from firebim import str_seg as SS, spa_seg as SP
+        from fire3dbeam import str_seg as SS, spa_seg as SP
         return os.path.exists(SS.MODEL) and SP.available()
     except Exception:
         return False
@@ -70,7 +70,7 @@ def applicable(syms, legend, text=None):
     return not syms or (MARKUP_TEXT and markup_only(syms, text))
 
 
-MARKUP_TEXT = os.environ.get('FIREBIM_MARKUP_TEXT', '1') != '0'
+MARKUP_TEXT = os.environ.get('FIRE3DBEAM_MARKUP_TEXT', '1') != '0'
 
 
 def markup_only(syms, text=None):
@@ -182,7 +182,7 @@ DOOR_CODE = re.compile(r'(ASD|FSD|SSD|SD|FD|AD|WD|PD|SSWD|D)$')        # 창호 
 
 def read_tags(g, circles):
     """창호 태그 OCR: 원 위 칸 '폭X높이'(→ W m) + 아래 칸 기호(ASD·SD·FD → 문 / AW → 창) → [{x,y,r,W|None,text,code,door}] — tesseract 2회(모자이크)"""
-    from firebim.realsym import _ocr_mosaic
+    from fire3dbeam.realsym import _ocr_mosaic
     tiles, bots, meta = [], [], []
     for x, y, r in circles:
         t = _circle_tile(g, x, y, r, 'top'); b = _circle_tile(g, x, y, r, 'bottom')
@@ -202,7 +202,7 @@ def read_tags(g, circles):
 
 def read_bubbles(g, circles, vl, hl):
     """그리드 버블(그리드선 연장 위의 원, 'X1'·'Y2'·'1'·'A') → {('v', x): 이름, ('h', y): 이름}"""
-    from firebim.realsym import _ocr_mosaic
+    from fire3dbeam.realsym import _ocr_mosaic
     tiles, meta = [], []
     for x, y, r in circles:
         on = [('v', v) for v in vl if abs(x - v) <= max(2.0, 0.25 * r)] + [('h', h) for h in hl if abs(y - h) <= max(2.0, 0.25 * r)]
@@ -417,7 +417,7 @@ def sheet_scale_ocr(img):
 
 def dims_scale(g):
     """치수 사슬 → px/m (realplan 치수 판독·합의, 원 시트 300dpi 가정 → 작은 그림은 확대)"""
-    from firebim import realplan as RP
+    from fire3dbeam import realplan as RP
     up = 1.0
     if max(g.shape) < 3000: up = min(2.0, 3000.0 / max(g.shape))
     gF = cv2.resize(g, None, fx=up, fy=up, interpolation=cv2.INTER_CUBIC) if up != 1.0 else g
@@ -483,7 +483,7 @@ def tag_ratios(tags, openings):
     return out
 
 
-TAG_PAIR2 = os.environ.get('FIREBIM_TAG_PAIR2', '1') != '0'   # 태그 짝 축척 2차(2026-10-03): 창 짝 위주·홑문 짝 제외·기호 종류 어긋난 짝 제외·폭 종류 수로 가중
+TAG_PAIR2 = os.environ.get('FIRE3DBEAM_TAG_PAIR2', '1') != '0'   # 태그 짝 축척 2차(2026-10-03): 창 짝 위주·홑문 짝 제외·기호 종류 어긋난 짝 제외·폭 종류 수로 가중
 
 
 def tag_scale(pairs, tol=AGREE):
@@ -550,7 +550,7 @@ def fuse(cands, tol=AGREE):
 
 
 # ───────────────────────── 건물 덩어리 외곽(mass) ─────────────────────────
-MASS_MODE = os.environ.get('FIREBIM_MASS_MODE', 'fill')     # fill(기본: 닫고 채우기 − 벗긴 마당) | inside(실내 성분 모으기)
+MASS_MODE = os.environ.get('FIRE3DBEAM_MASS_MODE', 'fill')     # fill(기본: 닫고 채우기 − 벗긴 마당) | inside(실내 성분 모으기)
 OPEN_FRAC = 0.25          # 바깥 쪽 경계 길이 중 창·문 비율이 이보다 작으면 '개구부 없는' 공간(마당형 후보)
 YARD_M2 = 20.0            # 바깥 쪽 개구부 없는 공간 중 이 면적 이상은 출입문이 있어도 마당형(실이 아님)으로 벗김
 EXT_M = 0.6              # 외곽 닫기용 벽 끝 연장(m)
@@ -576,11 +576,11 @@ def bridge_lines(walls, ppm, max_m=BRIDGE_M, tol_m=0.3, with_len=False):
     return out
 
 
-BRIDGE_INK = os.environ.get('FIREBIM_BRIDGE_INK', '1') != '0'
-WORD_PEEL = os.environ.get('FIREBIM_WORD_PEEL', '1') != '0'     # 옥상·조경·방수 주기 글자만 있는 문 없는 공간 벗기기(2026-10-03 2차, 글자층 도면에서 특히)
+BRIDGE_INK = os.environ.get('FIRE3DBEAM_BRIDGE_INK', '1') != '0'
+WORD_PEEL = os.environ.get('FIRE3DBEAM_WORD_PEEL', '1') != '0'     # 옥상·조경·방수 주기 글자만 있는 문 없는 공간 벗기기(2026-10-03 2차, 글자층 도면에서 특히)
 ROOFNOTE = re.compile(r'(방수|파라펫|PARAPET|우레탄|드레인|DRAIN|도포|잔디|식재|수목|자갈)', re.I)
-RIM_KEEP = os.environ.get('FIREBIM_RIM_KEEP', '1') != '0'   # 바깥 쪽이 장벽으로 막힌 좁은 띠는 남김(AI허브 보류 아파트 설비 공간, 2026-10-03)
-STRIP_PEEL = os.environ.get('FIREBIM_STRIP_PEEL', '1') != '0'
+RIM_KEEP = os.environ.get('FIRE3DBEAM_RIM_KEEP', '1') != '0'   # 바깥 쪽이 장벽으로 막힌 좁은 띠는 남김(AI허브 보류 아파트 설비 공간, 2026-10-03)
+STRIP_PEEL = os.environ.get('FIRE3DBEAM_STRIP_PEEL', '1') != '0'
 ROOMISH = re.compile(r'(실|방|홀|강당|로비|사무|화장|창고|복도|주방|거실|침실|현관|계단|교실|센터|공간|ROOM|HALL|WC)', re.I)
 LANDISH = re.compile(r'(조경|화단|식재|정원|주차|데크|DECK|마당|필로티|옥상|지붕|ROOF|외부|대지)', re.I)
 
@@ -748,8 +748,8 @@ def mass(lab, ppm, protect=(), close_m=0.25, peel=True, walls=None, neck_m=1.5, 
         return outm.astype(bool)
     # 기본 외곽 = realplan 모델 경로와 같은 '닫고 채우기'(벽∪창∪문 + 같은 선 틈 잇기, 닫기 0.3/0.6/1.3 m 중 채움 85% 유지되는 가장 작은 것)
     #   − 벗긴 마당형 공간(측지 팽창). 채우기가 실패하면 아래 실내 성분 방식(MASS_MODE='inside')으로
-    from firebim import realplan as RP
-    from firebim.str_seg import wall_thickness
+    from fire3dbeam import realplan as RP
+    from fire3dbeam.str_seg import wall_thickness
     k3 = np.ones((3, 3), np.uint8)
     pg = np.isin(cc, list(peel_set)).astype(np.uint8)
     for _ in range(r + 2): pg = cv2.dilate(pg, k3) & free0
@@ -837,7 +837,7 @@ def mass(lab, ppm, protect=(), close_m=0.25, peel=True, walls=None, neck_m=1.5, 
     return dict(mask=fill, exterior=np.isin(cc, np.nonzero(ext)[0]) & (cc > 0), peeled=peeled, ops=ops, op_ext=door_ext, mode='inside')
 
 
-WALL_STYLE = os.environ.get('FIREBIM_WALL_STYLE', '1') != '0'     # 모델 '벽' 중 건물 벽과 그림 꼴이 다른 선(대지선·주차구획·연석·화단) 빼기(2026-10-03)
+WALL_STYLE = os.environ.get('FIRE3DBEAM_WALL_STYLE', '1') != '0'     # 모델 '벽' 중 건물 벽과 그림 꼴이 다른 선(대지선·주차구획·연석·화단) 빼기(2026-10-03)
 
 
 def wall_profile(g, w, sm, n=12):
@@ -925,7 +925,7 @@ def mass_checked(lab, ppm, protect, drop=(), info=None, **kw):
     return m1
 
 
-NAMED_ROOM = os.environ.get('FIREBIM_NAMED_ROOM', '1') != '0'    # 한 변이 트인(셔터·차고문 점선) 이름 있는 실 되살리기(2026-10-03, 보류 N 진단 후)
+NAMED_ROOM = os.environ.get('FIRE3DBEAM_NAMED_ROOM', '1') != '0'    # 한 변이 트인(셔터·차고문 점선) 이름 있는 실 되살리기(2026-10-03, 보류 N 진단 후)
 ROOM_END = re.compile(r'(실|방|홀|당|대|고|소|장|관|청|과|팀|반|국|센터|ROOM|HALL)$', re.I)
 NOT_ROOM = re.compile(r'(평면|축척|도면|공사|범위|확인|설치|시공|기존|철거|입면|단면|주기|일람|상세|부분|위치|캐노피|테라스|발코니|옥외|도로|인접|경사|램프|진입|광장|공원|운동장|놀이)', re.I)
 
@@ -1036,11 +1036,11 @@ def text_roi(lines, shape, s, pad_m=2.5):
 
 
 def _model(img, s, roi=None):
-    from firebim import xcheck as X
+    from fire3dbeam import xcheck as X
     if roi is not None and STR_ROI: return X.model_plan(img, s, tile=REAL_TILE, even=EVEN_TILES, skip_blank=SKIP_BLANK, roi=roi)
     tile = REAL_TILE
     if STR_SINGLE_PX and not tile:                                # 작업 해상도 그림이 화소 예산 안이면 타일로 나누지 않고 한 번에(2026-10-03 2차: S 층당 STR 20→10 s, 겹친 타일 중복 계산 제거)
-        from firebim.str_seg import WORK_PPM_1_100
+        from fire3dbeam.str_seg import WORK_PPM_1_100
         k = WORK_PPM_1_100 / s
         h, w = img.shape[0] * k, img.shape[1] * k
         if h * w <= STR_SINGLE_PX: tile = int(max(h, w)) + 64
@@ -1049,7 +1049,7 @@ def _model(img, s, roi=None):
 
 def _openings(P, s):
     """STR 벡터 문·창 개체 → 원본 px [{x,y,w,kind}]"""
-    from firebim.str_seg import WORK_PPM_1_100
+    from fire3dbeam.str_seg import WORK_PPM_1_100
     k = WORK_PPM_1_100 / s
     out = []
     for kind in ('doors', 'windows'):
@@ -1059,22 +1059,22 @@ def _openings(P, s):
 
 
 def _spa(g, s):
-    from firebim import spa_seg as SP
+    from fire3dbeam import spa_seg as SP
     return SP.detect(g, ppm=s)
 
 
 def stage1(rp, info):
     """1단계(층마다): 글자·원·그리드·태그 + 임시 축척으로 STR·SPA → 축척 후보. 반환 R(dict)"""
     img = rp['img']; g = _gray(img)
-    from firebim import realsym as RS
-    from firebim.vision import masks, footprint_px_area
+    from fire3dbeam import realsym as RS
+    from fire3dbeam.vision import masks, footprint_px_area
     R = dict(g=g, floors=rp['floors'], caption=rp.get('caption', ''), cands=[])
     fa = [info['floors'][f]['area'] for f in rp['floors'] if f in info['floors'] and info['floors'][f].get('area')]
     R['card_area'] = fa[0] if fa else None
     sp, stated = sheet_ppm_from_caption(rp.get('caption'))
     if sp: R['cands'].append(dict(s=sp, w=W['sheet'] if stated else W['sheet_guess'], src='sheet'))
     R['sheet_sp'], R['sheet_stated'] = sp, bool(stated)
-    TL = rp.get('text') if PDF_TEXT else None                     # 벡터 도면 글자층(firebim/pdftext.py) — 있으면 치수·실명·태그·버블 OCR 대신
+    TL = rp.get('text') if PDF_TEXT else None                     # 벡터 도면 글자층(fire3dbeam/pdftext.py) — 있으면 치수·실명·태그·버블 OCR 대신
     R['text_src'] = 'pdf' if TL else 'ocr'
     td = text_dims_scale(TL) if TL else (None, 0.0, 0)
     if td[0]:                                                     # 글자층 치수 사슬(OCR 없음, 층당 수 ms) — 치수 판독(OCR ≈8 s)을 대신
@@ -1089,7 +1089,7 @@ def stage1(rp, info):
     if sd: R['cands'].append(dict(s=sd, w=W['dims'] if cd >= 0.5 else W['dims_weak'], src='dims', n=nd, conf=round(cd, 2)))
     vl, hl = grid_lines(g)
     circ = find_circles(g); R['n_circles'] = len(circ)
-    from firebim import realtag as RT
+    from fire3dbeam import realtag as RT
     R['tags'] = RT.read_tags(g, circ, text=TL) if TAG_V2 else read_tags(g, circ)
     if TAG_V2:
         tagc = [c for c in circ if any(math.hypot(c[0] - t['x'], c[1] - t['y']) < 2 and (t['W'] or t.get('code0') or len(t.get('raw') or '') >= 2) for t in R['tags'])]
@@ -1105,7 +1105,7 @@ def stage1(rp, info):
             if sum(1 for kk in R['bubbles'] if kk[0] == k_[0]) < 2: R.setdefault('_tax', {})[k_] = nm
         if R.get('_tax'): R['bubbles'] = {**R['bubbles'], **R.pop('_tax')}
     if TL:
-        from firebim import pdftext as PT
+        from fire3dbeam import pdftext as PT
         rooms, words = RS.select_rooms(PT.words_of(TL))
     else:
         up = 2.0 if max(g.shape) <= 2600 else 1.0
@@ -1149,7 +1149,7 @@ def stage1(rp, info):
             b = c['box']; cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
             if any(q['box'][0] <= cx <= q['box'][2] and q['box'][1] <= cy <= q['box'][3] for q in seg['stairs']) and c['n'] >= 4: gaps.append(c['gap'])
     if gaps: R['cands'].append(dict(s=float(np.median(gaps)) / TREAD_M, w=W['tread'], src='tread', n=len(gaps)))
-    from firebim.str_seg import WORK_PPM_1_100
+    from fire3dbeam.str_seg import WORK_PPM_1_100
     if R['card_area'] and not (AREA_SKIP and ((sp and stated) or R.get('dims_text'))):   # 면적 후보(가중 0.15)는 명시 축척(용지 적힌 시트·글자층 치수)이 있으면 결과를 못 바꿈 → 건너뜀(층당 ≈1 s)
         prot = [[v * WORK_PPM_1_100 / s0 for v in q['box']] for q in seg['stairs'] + seg['elevators']]
         Mm = mass(P['lab'], WORK_PPM_1_100, prot, walls=P['v']['walls'], peel=above_ground(rp['floors']))
@@ -1207,8 +1207,8 @@ def link_floors(Rs, tol=0.02, min_n=3):
 
 def stage2(R, rp, info, s):
     """2단계: 최종 축척 s 로 벽·창·문·덩어리 외곽·계단·승강기·실명(평면도 지역좌표 m / 원본 px)"""
-    from firebim import realsym as RS, geom
-    from firebim.str_seg import WORK_PPM_1_100 as WPPM
+    from fire3dbeam import realsym as RS, geom
+    from fire3dbeam.str_seg import WORK_PPM_1_100 as WPPM
     img, g = rp['img'], R['g']
     rerun = abs(math.log(s / R['s0'])) > math.log(1 + RERUN)
     P = _model(img, s, R.get('roi')) if rerun else R['P0']
@@ -1399,7 +1399,7 @@ def stage2(R, rp, info, s):
                 peeled=Mm['peeled'], model_s=round(sm, 3), rerun=bool(rerun), n_walls_model=len(P['v']['walls']), wall_style=sinfo)
 
 
-SPLIT_STAIRS = os.environ.get('FIREBIM_SPLIT_STAIRS', '1') != '0'     # 붙은 계단 둘이 한 상자로 잡힌 것 나누기(2026-10-03 2차)
+SPLIT_STAIRS = os.environ.get('FIRE3DBEAM_SPLIT_STAIRS', '1') != '0'     # 붙은 계단 둘이 한 상자로 잡힌 것 나누기(2026-10-03 2차)
 
 
 def split_merged_stairs(stairs, words, s, min_sep_m=2.5):
@@ -1462,9 +1462,9 @@ def ev_cells(g, lab, kk, s, words, all_words=()):
     return out
 
 
-ARC_DOOR = os.environ.get('FIREBIM_ARC_DOOR', '1') != '0'
-EXT_BY_MASK = os.environ.get('FIREBIM_EXT_BY_MASK', '1') != '0'
-ARC_SQ = float(os.environ.get('FIREBIM_EXT_SQ', '1.35'))           # 문 개체 상자 긴 변/짧은 변 ≤ 이 값이면 벽 방향을 상자 꼴로 안 정함(두 축 검사, 2026-10-03 보류 N 진단 후)
+ARC_DOOR = os.environ.get('FIRE3DBEAM_ARC_DOOR', '1') != '0'
+EXT_BY_MASK = os.environ.get('FIRE3DBEAM_EXT_BY_MASK', '1') != '0'
+ARC_SQ = float(os.environ.get('FIRE3DBEAM_EXT_SQ', '1.35'))           # 문 개체 상자 긴 변/짧은 변 ≤ 이 값이면 벽 방향을 상자 꼴로 안 정함(두 축 검사, 2026-10-03 보류 N 진단 후)
 
 
 def swing_arc(g, box, s):
@@ -1500,7 +1500,7 @@ def swing_arc(g, box, s):
 
 def ev_at(img, box, s, pad_m=0.3):
     """원본 도면 상자(px) 안에 승강기 표기(글자 'ELEV·E/V·승강기·N인승' 또는 승강로 X 대각선)가 있나 — 이웃 층 승강기 샤프트 잇기용(작은 영역만 OCR)"""
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     g = _gray(img); H, Wd = g.shape
     p = pad_m * s
     x0, y0, x1, y1 = int(max(0, box[0] - p)), int(max(0, box[1] - p)), int(min(Wd, box[2] + p)), int(min(H, box[3] + p))
@@ -1530,7 +1530,7 @@ def ev_at(img, box, s, pad_m=0.3):
 
 def stair_at(img, box, s, pad_m=0.4):
     """원본 도면의 상자(px) 안에 계단 디딤판(등간격 평행선 4개 이상, 간격 0.2~0.4 m, 길이 0.6~3.2 m — 점선·흐린 선 포함)이 있나"""
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     g = _gray(img); H, Wd = g.shape
     p = pad_m * s
     x0, y0, x1, y1 = int(max(0, box[0] - p)), int(max(0, box[1] - p)), int(min(Wd, box[2] + p)), int(min(H, box[3] + p))
@@ -1556,10 +1556,10 @@ def stair_at(img, box, s, pad_m=0.4):
     return False
 
 
-FAINT_MIN_M = float(os.environ.get('FIREBIM_FAINT_STAIR_MIN', '0.55'))   # 이웃 층 같은 자리 흐린 디딤판 최소 길이(m) — 좁은 옥외 철골 계단(한 흐름 0.6~0.8 m) 포함(2026-10-03 2차, 예전 0.8)
+FAINT_MIN_M = float(os.environ.get('FIRE3DBEAM_FAINT_STAIR_MIN', '0.55'))   # 이웃 층 같은 자리 흐린 디딤판 최소 길이(m) — 좁은 옥외 철골 계단(한 흐름 0.6~0.8 m) 포함(2026-10-03 2차, 예전 0.8)
 
 
-FAINT_STAIR = os.environ.get('FIREBIM_FAINT_STAIR', '1') != '0'
+FAINT_STAIR = os.environ.get('FIRE3DBEAM_FAINT_STAIR', '1') != '0'
 UPDN = re.compile(r'^(UP|DN|U\.P|D\.N)$', re.I)
 
 
@@ -1618,7 +1618,7 @@ def faint_stairs(g, words, s, have, max_ocr=6):
     """모델·진한 선 규칙이 놓친 흐린(회색·점선) 계단 — 기존·옥외 계단을 배경처럼 옅게 그린 도면.
     흐린 선까지(잉크 < 215, 점선 잇기) 등간격 평행선(디딤판 5개+, 간격 0.2~0.42 m, 길이 0.8~3.4 m, 직교 등간격 선이 겹치면 타일·격자라 제외) 묶음 중
     이미 찾은 계단 밖의 것 → 1 m 안에 계단 글자(UP·DN·계단)가 있거나, 둘레를 흐린 글자까지 다시 OCR 해 UP·DN 이 읽히면 계단. → [(상자 원본 px, 디딤판 수)]"""
-    from firebim import realsym as RS
+    from fire3dbeam import realsym as RS
     ink = (g < 242).astype(np.uint8)                                   # 회색(≈230) 선까지
     Ll = int(3.6 * s)                                                  # 디딤판보다 긴 선(그리드선·벽·대지선) 지움 — 디딤판끼리 이어져 한 덩어리가 되는 것 막기
     ink = ink & (1 - (cv2.morphologyEx(ink, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (Ll, 1))) |
@@ -1653,7 +1653,7 @@ def faint_stairs(g, words, s, have, max_ocr=6):
 
 
 def WORK_PPM():
-    from firebim.str_seg import WORK_PPM_1_100
+    from fire3dbeam.str_seg import WORK_PPM_1_100
     return WORK_PPM_1_100
 
 
@@ -1676,7 +1676,7 @@ def merge_frags(dets, gap_px, max_px):
 
 def above_ground(floors):
     """지하층 도면은 마당형 벗기기 안 함(옹벽·저수조 등 창 없는 외벽 실이 정상) — 대지선·조경은 지상층 도면에 그려짐"""
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     return bool(floors) and min(level_of(f) for f in floors) >= 0
 
 
@@ -1716,7 +1716,7 @@ def _pmap(fn, items):
 def process(raw_plans, info, log=None):
     """pipeline.run 에서 부름: 실제 도면 평면도들 [(i, rp)] → {i: 결과}. 층마다 1단계 → 층간 그리드 축척 → 합의 → 2단계"""
     import time
-    cache = os.environ.get('FIREBIM_REAL_S1CACHE')                # 개발용: 1단계 결과 캐시 폴더(영상·캡션·층 지문) — 2단계만 고칠 때 반복 시간 단축
+    cache = os.environ.get('FIRE3DBEAM_REAL_S1CACHE')                # 개발용: 1단계 결과 캐시 폴더(영상·캡션·층 지문) — 2단계만 고칠 때 반복 시간 단축
     def s1(i, rp):
         key = None
         if cache:
@@ -1756,7 +1756,7 @@ def process(raw_plans, info, log=None):
                             if c['src'] == 'sheet': c['w'] = W['sheet']; c['by'] = 'dims@' + '/'.join(R0['floors'])
                     break
     if TAG_V2:                                                   # 창호 기호: 건물 모든 층 태그를 모아 어휘 맞춤·본보기 투표
-        from firebim import realtag as RT
+        from fire3dbeam import realtag as RT
         sheet = set()
         for R in Rs: sheet |= RT.sheet_codes_from_words(R.get('words'))
         RT.resolve_codes([t for R in Rs for t in R['tags']], sheet)

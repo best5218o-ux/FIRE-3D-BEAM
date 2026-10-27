@@ -8,8 +8,8 @@
 import math, json
 from shapely.geometry import Polygon, MultiPolygon, box, LineString
 from shapely.ops import unary_union, polylabel
-from firebim.sop import CFG
-from firebim.card import level_of
+from fire3dbeam.sop import CFG
+from fire3dbeam.card import level_of
 
 CIRCUIT_KEY = '자동화재탐지기(회)'
 

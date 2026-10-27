@@ -19,8 +19,8 @@ from shapely.ops import unary_union
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from synth.sitemap import sitemap_image, seed_of
-from firebim import sitemap as SM, site as ST
-from firebim.card import level_of
+from fire3dbeam import sitemap as SM, site as ST
+from fire3dbeam.card import level_of
 
 SETS = dict(dev=('data', (0, 1)), held=('data_hold', (500, 501)),
             dev_var=('data', (0, 1), dict(dimvar=True)),              # 치수 글자 변형(기울어진·세로·선 위 글자, 소수 쉼표, '약', '미터') — 개발 그림과 치수 글자만 다름
@@ -250,7 +250,7 @@ def main(which, overlay=None, only=None):
     return S
 
 
-# ───────────── 통합 시험: 진압작전도를 넣은 시험용 정보카드 PDF → firebim.pipeline.run → 기능 24(작전도 경로) 채점
+# ───────────── 통합 시험: 진압작전도를 넣은 시험용 정보카드 PDF → fire3dbeam.pipeline.run → 기능 24(작전도 경로) 채점
 def make_test_pdf(d, png, out_dir):
     """기존 card.pdf 뒤에 '0 진압작전도' 캡션 + 그림 + 범례(필수) 표 글자 쪽을 붙인 시험용 PDF(카드 생성기는 건드리지 않음)"""
     import pymupdf, shutil
@@ -268,7 +268,7 @@ def make_test_pdf(d, png, out_dir):
 
 
 def pdf_test(which='dev', n=3):
-    from firebim.pipeline import run
+    from fire3dbeam.pipeline import run
     from evalr.score import score
     data, rs = SETS[which][:2]
     cache = os.path.join(ROOT, 'out_sitemap', which + CACHE_TAG); os.makedirs(cache, exist_ok=True)

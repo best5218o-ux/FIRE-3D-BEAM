@@ -165,9 +165,9 @@ def read_tags_text(g, circles, text):
 
 def read_tags(g, circles, text=None):
     """창호 태그 원 → [{x,y,r,W,text,raw,code0,small}] (code0 = 1차 어휘 맞춤, 건물 단위 resolve_codes 로 확정). tesseract 3회(모자이크).
-    text(벡터 도면 글자층 줄, firebim/pdftext.py)가 있으면 원 안 글자로 읽음(OCR 없음)"""
+    text(벡터 도면 글자층 줄, fire3dbeam/pdftext.py)가 있으면 원 안 글자로 읽음(OCR 없음)"""
     if text: return read_tags_text(g, circles, text)
-    from firebim.realsym import _ocr_mosaic
+    from fire3dbeam.realsym import _ocr_mosaic
     tops, bots, bold, meta = [], [], [], []
     for x, y, r in circles:
         t, _ = part_tile(g, x, y, r, 'top'); b, sm = part_tile(g, x, y, r, 'bottom')
@@ -306,7 +306,7 @@ def _assign(reads, kind, pos):
 def read_bubbles(g, circles, vl, hl, return_debug=False, text=None):
     """그리드 버블 → {('v', x): 이름, ('h', y): 이름}. 축마다 이름 꼴 다수결 → 꼴 화이트리스트 재판독 → 순서 맞춤.
     text(벡터 도면 글자층 줄)가 있으면 원 안 글자를 판독값으로(OCR 없음) — 같은 순서 맞춤·중복 검사는 그대로"""
-    from firebim.realsym import _ocr_mosaic
+    from fire3dbeam.realsym import _ocr_mosaic
     tiles, meta, treads = [], [], []
     for x, y, r in circles:
         on = [('v', v) for v in vl if abs(x - v) <= max(2.0, 0.25 * r)] + [('h', h) for h in hl if abs(y - h) <= max(2.0, 0.25 * r)]

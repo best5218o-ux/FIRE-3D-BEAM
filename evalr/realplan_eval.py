@@ -28,13 +28,13 @@ def split_files(folder):
 def work(args):
     path, od, draw, model = args
     import cv2
-    from firebim import realplan as R
+    from fire3dbeam import realplan as R
     t0 = time.time()
     try:
         stem = os.path.splitext(os.path.basename(path))[0]
         msrc, cp = None, None
         if model:
-            from firebim import str_seg as SS
+            from fire3dbeam import str_seg as SS
             if MCACHE:                                   # 모델 라벨 캐시(모델 파일 이름별 폴더) — 축척·외곽 규칙만 바꿔 다시 돌릴 때
                 cp = os.path.join(MCACHE, os.path.splitext(os.path.basename(SS.MODEL))[0], stem + '_mH.png')
                 if os.path.exists(cp): msrc = dict(lab=cv2.imread(cp, cv2.IMREAD_GRAYSCALE))
@@ -141,10 +141,10 @@ if __name__ == '__main__':
     ap.add_argument('--overlays', type=int, default=25, help='겹침 그림을 그릴 시트 수(무작위)')
     ap.add_argument('--workers', type=int, default=2)
     ap.add_argument('--files', nargs='*', help='특정 파일명만')
-    ap.add_argument('--model', action='store_true', help='(기본) 벽·창·문을 분할 모델(firebim/str_seg, models/str_seg.onnx)로')
+    ap.add_argument('--model', action='store_true', help='(기본) 벽·창·문을 분할 모델(fire3dbeam/str_seg, models/str_seg.onnx)로')
     ap.add_argument('--rules', action='store_true', help='규칙 벽 경로(예전 기본)')
     a = ap.parse_args()
-    from firebim import realplan as _R
+    from fire3dbeam import realplan as _R
     a.model = (not a.rules) and _R.model_available()
     dev, hold = split_files(a.folder)
     fs = dict(dev=dev, hold=hold, all=dev + hold)[a.split]

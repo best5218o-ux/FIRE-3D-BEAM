@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """공통 변환 엔진: 정보카드 PDF 1개 → 소방용 건물 모델(JSON)
-사용: python -m firebim.pipeline card.pdf out.json"""
+사용: python -m fire3dbeam.pipeline card.pdf out.json"""
 import json, sys, math, os
 import numpy as np, cv2
 from shapely.geometry import Point, box
-from firebim.card import parse_card, extract_plans, extract_figures, redact, level_of
-from firebim.vision import masks, detect_symbols, detect_fac, grid_lines, scale_from_dims, footprint_px_area, stair_regions
-from firebim import geom
-from firebim.align import align, align_real
+from fire3dbeam.card import parse_card, extract_plans, extract_figures, redact, level_of
+from fire3dbeam.vision import masks, detect_symbols, detect_fac, grid_lines, scale_from_dims, footprint_px_area, stair_regions
+from fire3dbeam import geom
+from fire3dbeam.align import align, align_real
 
 
 def cluster_vertical(items, tol=1.6, key='xy'):
@@ -27,9 +27,9 @@ def cluster_vertical(items, tol=1.6, key='xy'):
 
 
 BAY = {}
-JAMBS = os.environ.get('FIREBIM_JAMBS', '1') != '0'
-OCC = os.environ.get('FIREBIM_OCC', '1') != '0'          # 채색 기호가 가린 벽 틈 판별
-FLAGTEXT = os.environ.get('FIREBIM_FLAGTEXT', 'real')  # 플래그에 쉬운 말 msg·기술 detail 을 JSON 에 붙이기(2026-10-03): real = 실제 도면 경로 층이 있을 때만(가상 카드 JSON 바이트 동일) · 1 = 항상 · 0 = 안 붙임.
+JAMBS = os.environ.get('FIRE3DBEAM_JAMBS', '1') != '0'
+OCC = os.environ.get('FIRE3DBEAM_OCC', '1') != '0'          # 채색 기호가 가린 벽 틈 판별
+FLAGTEXT = os.environ.get('FIRE3DBEAM_FLAGTEXT', 'real')  # 플래그에 쉬운 말 msg·기술 detail 을 JSON 에 붙이기(2026-10-03): real = 실제 도면 경로 층이 있을 때만(가상 카드 JSON 바이트 동일) · 1 = 항상 · 0 = 안 붙임.
 #   JSON 에 msg 가 없어도 지휘화면(export)·검수 화면(review/make)은 그릴 때 flagtext.explain 으로 같은 쉬운 말을 씀
 
 
@@ -50,7 +50,7 @@ def refine_scale(plans, info=None):
     """치수 OCR 은 한두 자리 오독(8,100→8,500)이 흔하다 → 건물 전체에서 가장 많이 읽힌 경간(mm)을 합의값으로,
     등간격 그리드 도면은 축척 = 그리드 간격(전체 폭 최소제곱) ÷ 합의 경간. 각 도면 자체 추정과 6% 넘게 어긋나면 그대로 둔다."""
     BAY.clear()
-    plans = [p for p in plans if not p.get('real')]          # 실제 도면 경로(firebim/realcard.py)는 자체 축척 합의 — 건드리지 않음
+    plans = [p for p in plans if not p.get('real')]          # 실제 도면 경로(fire3dbeam/realcard.py)는 자체 축척 합의 — 건드리지 않음
     def s_area(p):                                          # 정보카드 면적 ↔ 도면 윤곽 면적(±25% 수준, 배수 오독 판별용)
         if info is None: return None
         fa = [info['floors'][f]['area'] for f in p['floors'] if f in info['floors'] and info['floors'][f].get('area')]
@@ -77,26 +77,26 @@ def refine_scale(plans, info=None):
 
 def run(pdf, keep=False, daejang=None, site=None, ilramdo=None, model=None, dong=None):
     """daejang/site/ilramdo: 건축물대장(json|pdf)·부지(json)·경계구역 일람도(json) 경로. None 이면 card.pdf 옆 파일을 자동으로 찾는다.
-    model: True 면 STR 분할 모델을 두 번째 추출기로 돌려 벽 교차검증·문 보충(firebim/xcheck.py). None → 환경변수 FIREBIM_MODEL=1. 기본은 규칙만."""
-    auto = model is None and not os.environ.get('FIREBIM_MODEL')
-    if model is None: model = os.environ.get('FIREBIM_MODEL', '').lower() in ('1', 'true', 'on', 'yes')
-    info, doc = parse_card(pdf, dong)                # 표준양식이면 양식 항목명 키 + 기존 키(선택 동). 여러 동: dong= 또는 FIREBIM_DONG
-    if auto and info.get('source') == 'ocr':         # 스캔본 카드: 모델 경로(교차검증·벽/문 보충)를 기본으로(모델·onnxruntime 있을 때). 끄기 FIREBIM_SCAN_MODEL=0 / model=False
-        from firebim import scanplan as _SCP
+    model: True 면 STR 분할 모델을 두 번째 추출기로 돌려 벽 교차검증·문 보충(fire3dbeam/xcheck.py). None → 환경변수 FIRE3DBEAM_MODEL=1. 기본은 규칙만."""
+    auto = model is None and not os.environ.get('FIRE3DBEAM_MODEL')
+    if model is None: model = os.environ.get('FIRE3DBEAM_MODEL', '').lower() in ('1', 'true', 'on', 'yes')
+    info, doc = parse_card(pdf, dong)                # 표준양식이면 양식 항목명 키 + 기존 키(선택 동). 여러 동: dong= 또는 FIRE3DBEAM_DONG
+    if auto and info.get('source') == 'ocr':         # 스캔본 카드: 모델 경로(교차검증·벽/문 보충)를 기본으로(모델·onnxruntime 있을 때). 끄기 FIRE3DBEAM_SCAN_MODEL=0 / model=False
+        from fire3dbeam import scanplan as _SCP
         model = _SCP.model_default()
-    info = redact(info)                              # ⑧ 관계인 성명·연락처 제외(기본) — FIREBIM_INCLUDE_CONTACTS=1 이면 유지
+    info = redact(info)                              # ⑧ 관계인 성명·연락처 제외(기본) — FIRE3DBEAM_INCLUDE_CONTACTS=1 이면 유지
     raw = extract_plans(doc)
     if info.get('양식') == 'std':
         raw = [p for p in raw if p.get('dong', 0) == info.get('선택동', 0)]     # 선택 동의 평면도만(3D 는 한 동씩)
     plans, log = [], []
-    from firebim import scanplan as SCP
-    from firebim import realcard as RC
+    from fire3dbeam import scanplan as SCP
+    from fire3dbeam import realcard as RC
     real_raw = []
     PDFT = None
     for i, rp in enumerate(raw):
         img = rp['img']
         scan = rp.get('source') == 'ocr' and SCP.ENABLED          # 스캔본 카드에서 잘라낸 평면도만(글자층 카드 경로 불변)
-        if scan:                                                   # 검출기별 정규화 영상(firebim/scanplan.py): geo=벽·문, sym=기호·계단, 원본=그리드·치수·면적
+        if scan:                                                   # 검출기별 정규화 영상(fire3dbeam/scanplan.py): geo=벽·문, sym=기호·계단, 원본=그리드·치수·면적
             img, img_sym = SCP.prep(rp['img']); M_raw = masks(rp['img'])
         M = masks(img)
         Ms = dict(masks(img_sym), blue_loose=SCP.blue_loose(img_sym)) if scan else M
@@ -105,21 +105,21 @@ def run(pdf, keep=False, daejang=None, site=None, ilramdo=None, model=None, dong
         tl = None
         if syms and not leg:                           # 범례 없이 '기호'만 있으면: 색 글자(공사범위 주기)인지 글자층으로도 확인
             if PDFT is None:
-                from firebim import pdftext as _PT
+                from fire3dbeam import pdftext as _PT
                 PDFT = _PT.load(doc)
             if PDFT:
-                from firebim import pdftext as _PT
+                from fire3dbeam import pdftext as _PT
                 tl = _PT.for_plan(PDFT, rp['caption'], rp['img'].shape)
         if RC.applicable(syms, leg, tl):               # 범례·기호 없는 실제 CAD 평면도
             if syms: syms, fsyms = [], []              # 색 글자(공사범위 주기)로 판정된 '기호'는 버림 — 승강기·소화전 점으로 쓰이지 않게 → 실제 도면 경로(아래 RC.process — 축척·벽·문·계단·승강기)
             plans.append(dict(i=i, floors=rp['floors'], caption=rp['caption'], s=None, scale_src=None, symbols=syms, vlines=[], hlines=[], legend=leg, Z=Z,
                               img=img, M=M, dim_mm=[], fac_symbols=fsyms, real=True, **({'img_src': rp['img']} if scan else {})))
-            if PDFT is None:                                # 벡터 도면 글자층(review/attach.py 가 합본에 내장, firebim/pdftext.py) — 있으면 OCR 대신
-                from firebim import pdftext as _PT
+            if PDFT is None:                                # 벡터 도면 글자층(review/attach.py 가 합본에 내장, fire3dbeam/pdftext.py) — 있으면 OCR 대신
+                from fire3dbeam import pdftext as _PT
                 PDFT = _PT.load(doc)
             tl = None
             if PDFT:
-                from firebim import pdftext as _PT
+                from fire3dbeam import pdftext as _PT
                 tl = _PT.for_plan(PDFT, rp['caption'], rp['img'].shape)
             real_raw.append((i, dict(rp, img=rp['img'], **({'text': tl} if tl else {}))))
             continue
@@ -279,14 +279,14 @@ def run(pdf, keep=False, daejang=None, site=None, ilramdo=None, model=None, dong
         for k, c in enumerate(elevs):
             if any(m.get('real') for m in c['m']) and ev_cert(c) != 'model':
                 flags.append(dict(kind='elev_text', name=f'승강기 {chr(65 + k)}', floors=c['floors'], word='승강기 글자', cert=ev_cert(c)))
-    from firebim import fac as FAC                           # 층별 소방시설 목록 + 위치 확실성(located/estimated/present)
+    from fire3dbeam import fac as FAC                           # 층별 소방시설 목록 + 위치 확실성(located/estimated/present)
     fac_res, fac_flags = FAC.build(info, out_floors, [dict(floors=c['floors'], box=c['box']) for c in stairs], [dict(floors=c['floors'], box=c['box']) for c in elevs], plans=plans)
     flags += fac_flags
     if xres: flags += xres.pop('_flags')
     ext = extensions(pdf, info, out_floors, stairs, elevs, flags, daejang, site, ilramdo)
-    if os.environ.get('FIREBIM_EVAC', '1') != '0':           # 대피로·진입로(firebim/evac.py) — 결과는 res['evac'], 플래그는 res['evac']['flags']
+    if os.environ.get('FIRE3DBEAM_EVAC', '1') != '0':           # 대피로·진입로(fire3dbeam/evac.py) — 결과는 res['evac'], 플래그는 res['evac']['flags']
         try:
-            from firebim.evac import analyze as evac_analyze
+            from fire3dbeam.evac import analyze as evac_analyze
             ext['evac'] = evac_analyze(info, out_floors, stairs, elevs, plans, ext)
         except Exception as e: ext['evac'] = dict(error=repr(e))
     res = dict(card=info, floors={k: {kk: vv for kk, vv in v.items() if not kk.startswith('_')} for k, v in out_floors.items()},
@@ -300,8 +300,8 @@ def run(pdf, keep=False, daejang=None, site=None, ilramdo=None, model=None, dong
         figs = extract_figures(doc)
         res['figures'] = [{k: v for k, v in f.items() if k != 'img'} for f in figs]
         if keep: res['_figures'] = figs
-    if FLAGTEXT == '1' or (FLAGTEXT == 'real' and any(p.get('real') for p in plans)):   # 확인사항 쉬운 말(msg) + 기술 정보(detail), 층별 축척 근거(scale_basis) — firebim/flagtext.py
-        from firebim.flagtext import annotate
+    if FLAGTEXT == '1' or (FLAGTEXT == 'real' and any(p.get('real') for p in plans)):   # 확인사항 쉬운 말(msg) + 기술 정보(detail), 층별 축척 근거(scale_basis) — fire3dbeam/flagtext.py
+        from fire3dbeam.flagtext import annotate
         annotate(res)
     if keep:      # 3D 출력용(도면 이미지·외곽선) — JSON 저장 안 함
         res['_plans'] = [dict(img=p.get('img_src', p['img']), s=p['s'], tx=p['tx'], ty=p['ty'], caption=p['caption']) for p in plans]
@@ -309,11 +309,11 @@ def run(pdf, keep=False, daejang=None, site=None, ilramdo=None, model=None, dong
     return res
 
 
-REAL_STAIR2 = os.environ.get('FIREBIM_REAL_STAIR2', '1') != '0'      # 실제 도면: 한 층에만 그려진 계단·옥외 계단 · 위아래 층 이어짐(점선 디딤판) · 확실성 표시(2026-10-03)
+REAL_STAIR2 = os.environ.get('FIRE3DBEAM_REAL_STAIR2', '1') != '0'      # 실제 도면: 한 층에만 그려진 계단·옥외 계단 · 위아래 층 이어짐(점선 디딤판) · 확실성 표시(2026-10-03)
 
 
 def ko_floor(f):
-    from firebim.flagtext import floor_ko
+    from fire3dbeam.flagtext import floor_ko
     return floor_ko(f)
 
 
@@ -325,7 +325,7 @@ def real_single_ok(c):
 
 def real_stair_extend(stairs, plans, floors):
     """계단 묶음마다 확실성(cert)·종류(kind) 붙이고, 바로 위·아래 층 실제 도면의 같은 자리에 디딤판(점선 포함)이 있으면 그 층까지 잇기(cert 'extended')"""
-    from firebim import realcard as RC
+    from fire3dbeam import realcard as RC
     by_floor = {f: p for p in plans for f in p['floors'] if p.get('real')}
     order = sorted(floors, key=level_of)
     for c in stairs:
@@ -354,7 +354,7 @@ def real_stair_extend(stairs, plans, floors):
 
 def real_ev_extend(elevs, plans, floors):
     """승강기 샤프트를 바로 위·아래 실제 도면 층으로 잇기: 그 층 같은 자리에 승강기 글자·X 표시가 보이면(작은 영역 OCR) 그 층 정차로 추가(ext_floors)"""
-    from firebim import realcard as RC
+    from fire3dbeam import realcard as RC
     by_floor = {f: p for p in plans for f in p['floors'] if p.get('real')}
     order = sorted(floors, key=level_of)
     for c in elevs:
@@ -426,22 +426,22 @@ def occ_fn(p):
 
 
 def model_pass(plans, floors):
-    """선택 경로: 도면마다 STR 모델 → 층마다 규칙↔모델 교차검증(firebim/xcheck.py).
+    """선택 경로: 도면마다 STR 모델 → 층마다 규칙↔모델 교차검증(fire3dbeam/xcheck.py).
     - 벽마다 conf = 모델 지지율(두 추출기 일치 → 1에 가까움)
     - 규칙만 본 벽 조각 / 모델만 본 벽 조각 → 의심도 p 가 붙은 불일치 목록(검수 항목의 원천)
     - 모델이 확신하는 누락 벽(p ≥ fill_p) 보충 → 외곽·문(틈) 다시 계산, 모델 문 보충(src='model')
     반환: 결과 JSON 'xcheck' 절 {도면 번호: {...}} + '_flags'(도면별 불일치 요약 플래그 kind='xcheck_wall')"""
-    from firebim import xcheck as X
+    from fire3dbeam import xcheck as X
     C = X.CFG
     out, xflags = {}, []
     for p in plans:
         fl = sorted([f for f in floors if floors[f]['plan'] == p['i']], key=level_of)
         if not fl: continue
         if p.get('real'):                          # 실제 도면 경로는 벽·문이 이미 모델 결과(교차검증 대상 규칙 벽 없음)
-            out[str(p['i'])] = dict(note='real_path: 벽·창·문 = STR 모델(firebim/realcard.py)'); continue
+            out[str(p['i'])] = dict(note='real_path: 벽·창·문 = STR 모델(fire3dbeam/realcard.py)'); continue
         if p.get('scan'):                          # 스캔본: 축척이 면적 대체로 크게 틀리면 모델 작업 영상이 수천만 화소 → 메모리 초과(hold 에서 7GB OOM) → 건너뜀
-            from firebim.str_seg import WORK_PPM_1_100
-            from firebim import scanplan as SCP
+            from fire3dbeam.str_seg import WORK_PPM_1_100
+            from fire3dbeam import scanplan as SCP
             npx = p['img'].shape[0] * p['img'].shape[1] * (WORK_PPM_1_100 / max(p['s'], 1e-3)) ** 2
             if npx > SCP.MODEL_MAX_PX:
                 out[str(p['i'])] = dict(error=f'model_skipped: 작업 영상 {npx / 1e6:.0f}M 화소(축척 {p["scale_src"]})'); continue
@@ -461,7 +461,7 @@ def model_pass(plans, floors):
             if add or n_ext:
                 fp = geom.footprint_from_walls(W)
                 if p.get('scan'):
-                    from firebim import scanplan as SCP
+                    from fire3dbeam import scanplan as SCP
                     if SCP.MAINFP: fp = SCP.main_footprint(fp)
                 ca = (F.get('card') or {}).get('area')
                 if fp is not None and ca and 0.7 <= fp.area / ca <= 1.5: W = geom.clip_walls(W, fp)
@@ -497,9 +497,9 @@ def _find(pdf, given, names):
 
 def extensions(pdf, info, floors, stairs, elevs, flags, daejang=None, site=None, ilramdo=None):
     """기능 12(경계구역) · 18(건축물대장 교차검증) · 24(외부 부서 위치). 실패해도 기본 변환은 그대로 둔다."""
-    from firebim import zones as Z, daejang as DJ, site as ST
-    from firebim.export import spaces
-    from firebim.sop import CFG
+    from fire3dbeam import zones as Z, daejang as DJ, site as ST
+    from fire3dbeam.export import spaces
+    from fire3dbeam.sop import CFG
     out = {}
     pd = [dict(x=c['x'], y=c['y'], floors=c['floors'], box=c['box']) for c in stairs]
     pe = [dict(x=c['x'], y=c['y'], floors=c['floors'], box=c['box']) for c in elevs]
@@ -541,12 +541,12 @@ def extensions(pdf, info, floors, stairs, elevs, flags, daejang=None, site=None,
 def sitemap_image_of(pdf, info):
     """진압작전도 이미지(BGR): 카드 해석기가 넘긴 것(info['sitemap_img']) → PDF 캡션 '진압작전도' 이미지 → 옆 파일 sitemap.png"""
     import cv2
-    from firebim import sitemap as SM
+    from fire3dbeam import sitemap as SM
     img = info.get('sitemap_img') if isinstance(info, dict) else None
     if img is None:                                              # 표준양식: ⑪ 그림 목록에서 '진압작전도'(첫 동)
         try:
             import pymupdf
-            from firebim.card import extract_figures
+            from fire3dbeam.card import extract_figures
             figs = [f for f in extract_figures(pymupdf.open(pdf)) if f['kind'] == '진압작전도' and f.get('dong', 0) == 0]
             if figs: img = figs[0]['img']
         except Exception:
@@ -561,7 +561,7 @@ def sitemap_image_of(pdf, info):
 def sitemap_site(pdf, info, floors, fh, ws, site_json=None):
     """[기능 24 · 작전도] 진압작전도 인식 → 1층 외곽에 정합 → 외부 부서 계산 + 교차검증. 작전도 없으면 (None, [])"""
     import math
-    from firebim import sitemap as SM, site as ST
+    from fire3dbeam import sitemap as SM, site as ST
     img = sitemap_image_of(pdf, info)
     if img is None: return None, []
     rec = SM.recognize(img, legend=info.get('sitemap_legend'))
@@ -615,13 +615,13 @@ def checks(info, floors, stairs, elevs):
 
 
 OCR_FLAG_MAX = 20
-ELEV_CHECK = os.environ.get('FIREBIM_ELEV_CHECK', '1') != '0'      # 표준양식 ⑦ 승강기 합 ↔ 도면 승강기 수(elev_count)
+ELEV_CHECK = os.environ.get('FIRE3DBEAM_ELEV_CHECK', '1') != '0'      # 표준양식 ⑦ 승강기 합 ↔ 도면 승강기 수(elev_count)
 
 
 def ocr_flags(info):
     """스캔본 정보카드(OCR) — 신뢰도 낮은 항목마다 검수 플래그 kind='card_ocr'(관계인은 값 없이 항목 이름만). 글자층 카드는 []"""
     if info.get('source') != 'ocr': return []
-    from firebim.card import ocr_value
+    from fire3dbeam.card import ocr_value
     oc = info.get('ocr') or {}
     if oc.get('error'): return [dict(kind='card_ocr_fail', why=oc['error'], pages=oc.get('pages'))]
     out = []

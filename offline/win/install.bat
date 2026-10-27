@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal EnableExtensions DisableDelayedExpansion
 rem ==========================================================================
-rem  FireBIM offline installer (Windows 10/11 x64, no internet, no admin)
+rem  FIRE-3D BEAM offline installer (Windows 10/11 x64, no internet, no admin)
 rem  - python\      : embeddable Python 3.11 (pre-extracted by build_bundle.sh)
 rem  - wheelhouse\  : all Python packages as win_amd64 wheels (pip --no-index)
 rem  - tesseract\   : portable Tesseract OCR + tessdata (kor, eng)
@@ -11,7 +11,7 @@ rem  Fallback: if python\ is missing, uses an installed Python 3.11 to make venv
 rem  Note: only "if errorlevel" is used (no && / ||) so it also runs under Wine cmd for testing.
 rem ==========================================================================
 set "ROOT=%~dp0"
-set "FIREBIM_HOME=%ROOT:~0,-1%"
+set "FIRE3DBEAM_HOME=%ROOT:~0,-1%"
 set "PYTHONUTF8=1"
 set "PYTHONNOUSERSITE=1"
 set "PIP_DISABLE_PIP_VERSION_CHECK=1"

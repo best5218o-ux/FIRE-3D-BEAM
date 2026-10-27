@@ -1,4 +1,4 @@
-# 검수 결과(교정) 파일 형식 — `firebim.review/1`
+# 검수 결과(교정) 파일 형식 — `fire3dbeam.review/1`
 
 검수화면(`*_검수화면.html` / `X_review.html`)의 「검수 결과 저장」이 내려받는 `<건물id>_corrections.json`.
 용도 ① `python -m review.apply <결과.json> <corrections.json>` 로 다시 적용 → 수정 결과·3D·IFC 재생성
@@ -13,7 +13,7 @@
 ## 최상위
 | 키 | 내용 |
 |---|---|
-| `schema` | `"firebim.review/1"` |
+| `schema` | `"fire3dbeam.review/1"` |
 | `tool`, `created`, `updated` | 만든 도구, 처음/마지막 저장 시각(ISO) |
 | `building` | `{id, name, use, result_sha, pdf_name, pdf_sha256}` — `result_sha` 로 어느 변환 결과에 대한 검수인지 확인 |
 | `source` | `{result_json, pdf}` 내부 PC 경로(반출 금지) |

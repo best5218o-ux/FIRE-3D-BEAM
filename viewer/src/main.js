@@ -53,7 +53,7 @@ let evac = null;                                           // 대피로·진입�
 let search = null, train = null;                           // 인명검색 우선순위(search.js) · 훈련 채점(train.js)
 let lastPlan = null;                                       // 마지막 화점 산출안(훈련 채점 기준)
 let xray = false, isolate = false, lowQ = false, shadows = false, farView = false;   // v3 보기 상태(farView: 카메라가 멀어 작은 글자 숨김)
-// 활동계획 기준값(firebim/sop.py ACT — 임시값). 옛 데이터(D.sop_act 없음)는 이전 동작과 같은 값
+// 활동계획 기준값(fire3dbeam/sop.py ACT — 임시값). 옛 데이터(D.sop_act 없음)는 이전 동작과 같은 값
 const ACT = Object.assign({ atk_w_standpipe_m: 0, standpipe_r_m: 5, atk_w_demand_m: 0, hose_len_m: 15, hose_slack_m: 0, hose_carry: 2, walk_mps: 0.8, stair_s_per_floor: 25, scba_cyl_l: 6.8, scba_fill_bar: 300, scba_return_bar: 55, scba_lpm: 55, scba_margin_min: 5 }, D.sop_act || {});
 const LIFT = Math.max(9, H * 2.2);                         // 층을 고르면 위층을 이만큼 들어 그 층을 드러냄
 const fireActive = () => !!(fire || picking);
@@ -70,7 +70,7 @@ try {
 } catch (e) {
   GL = false;
   renderer = { domElement: canvas, shadowMap: { enabled: false }, info: { render: { calls: 0, triangles: 0 } }, localClippingEnabled: false, setPixelRatio() {}, getPixelRatio: () => 1, setClearColor() {}, setSize(w, h) { canvas.width = w; canvas.height = h; }, render() {} };
-  console.info('[FireBIM] WebGL 사용 불가 → 2D 대체 보기', e && e.message);
+  console.info('[FIRE-3D BEAM] WebGL 사용 불가 → 2D 대체 보기', e && e.message);
 }
 const PR0 = Math.min(2, devicePixelRatio || 1);
 renderer.setPixelRatio(PR0); renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
@@ -624,7 +624,7 @@ function simPanel() {
   h += `</table><div style="margin-top:6px"><b>곤란 도달 빠른 실</b> <span class="k">(누르면 이동)</span></div><table>` + S.top.map((z) => `<tr class="mk" data-fly="${z.c[0]},${z.c[1]}" data-fl="${esc(z.fid)}"><td style="text-align:left"><span class="sq" style="display:inline-block;background:${sim.ttuCol(z.ttu)}"></span> ${esc(FL[z.fid].name)} · ${esc(CATNAME[z.cat] || '계단·승강로')} ${Math.round(z.area)}㎡</td><td>${S.fmt(z.ttu)}${isFinite(z.burn) ? ' 🔥' : ''}</td></tr>`).join('') + '</table>';
   if (crewInfo && !crewInfo.none) h += `<div style="margin-top:6px"><b>🚒 대원(예시)</b> ${crewInfo.km != null ? `관할센터 ${crewInfo.km}km → ` : '거리 없음 → '}진입 시작 ${mmss(crewInfo.arrive)} · 화재층 +${mmss(crewInfo.tFloor)} · 화점 +${mmss(crewInfo.tEnd)}${crewInfo.scbaLim != null ? ` · 귀환 한계 진입 후 ${mmss(crewInfo.scbaLim)}` : ''}</div>`;
   else if (crewInfo && crewInfo.none) h += '<div class="note">진입 경로가 없어(계단 미검출) 대원 이동은 재생하지 않습니다.</div>';
-  h += `<div class="note">${esc(SIMP._note || '예시·임시값')} — 연기 지수 ${SIMP.untenable} 이상 또는 불 붙은 지 ${SIMP.burn_untenable_s}초면 '곤란'. 문 전도도 ${SIMP.c_door}㎥/s·문 미검출 경계 ${SIMP.c_wall}·계단 위로 ${SIMP.c_stack_up} 등(firebim/sop.py SIM). 공학 연기 모델(CFAST·FDS)과 다르며 현장 판단을 대신하지 않습니다.</div>`;
+  h += `<div class="note">${esc(SIMP._note || '예시·임시값')} — 연기 지수 ${SIMP.untenable} 이상 또는 불 붙은 지 ${SIMP.burn_untenable_s}초면 '곤란'. 문 전도도 ${SIMP.c_door}㎥/s·문 미검출 경계 ${SIMP.c_wall}·계단 위로 ${SIMP.c_stack_up} 등(fire3dbeam/sop.py SIM). 공학 연기 모델(CFAST·FDS)과 다르며 현장 판단을 대신하지 않습니다.</div>`;
   el.innerHTML = h;
 }
 $('tlPlay').onclick = () => { if (TL.t >= TL.T) TL.t = 0; TL.playing = !TL.playing; applyTime(); };
@@ -1325,17 +1325,17 @@ const THEMES = [['night', '야간', 'moon'], ['day', '주간', 'sun'], ['hc', '�
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* 저장 불가(사생활 보호 창 등) */ } } };
 function setTheme(t) {
   const th = THEMES.find((z) => z[0] === t) || THEMES[0];
-  document.documentElement.dataset.theme = th[0]; store.set('firebim.theme', th[0]);
+  document.documentElement.dataset.theme = th[0]; store.set('fire3dbeam.theme', th[0]);
   const nx = THEMES[(THEMES.indexOf(th) + 1) % THEMES.length];
   $('thBtn').innerHTML = svg(th[2]) + `<span>${th[1]}</span>`; $('thBtn').setAttribute('aria-label', `화면 테마: ${th[1]} — 누르면 ${nx[1]}`); $('thBtn').title = `화면 테마: ${th[1]} (T) — 누르면 ${nx[1]}`;
   scene.fog.color.setHex(th[0] === 'hc' ? 0x000000 : th[0] === 'day' ? 0x122340 : 0x0b1220);
   invalidate(); setTimeout(layoutUI, 0); return th[0];
 }
 const FZ = [0.9, 1, 1.12, 1.25, 1.4];
-let fz = Number(store.get('firebim.fz')) || 1;
+let fz = Number(store.get('fire3dbeam.fz')) || 1;
 function setFont(z) {
   fz = FZ.reduce((a, b) => (Math.abs(b - z) < Math.abs(a - z) ? b : a), 1);
-  document.documentElement.style.setProperty('--fz', fz); document.documentElement.style.setProperty('--lz', fz); store.set('firebim.fz', fz);
+  document.documentElement.style.setProperty('--fz', fz); document.documentElement.style.setProperty('--lz', fz); store.set('fire3dbeam.fz', fz);
   $('fzDn').disabled = fz <= FZ[0]; $('fzUp').disabled = fz >= FZ[FZ.length - 1];
   $('fzUp').title = `글자 크게 (+) — 지금 ${Math.round(fz * 100)}%`; $('fzDn').title = `글자 작게 (−) — 지금 ${Math.round(fz * 100)}%`;
   setTimeout(layoutUI, 0); invalidate(); return fz;
@@ -1345,7 +1345,7 @@ $('fzUp').innerHTML = svg('textup'); $('fzDn').innerHTML = svg('textdn'); $('prB
 $('fzUp').onclick = () => setFont(FZ[Math.min(FZ.length - 1, FZ.indexOf(fz) + 1)]); $('fzDn').onclick = () => setFont(FZ[Math.max(0, FZ.indexOf(fz) - 1)]);
 $('prBtn').onclick = () => { buildPrint(); window.print(); };
 // 인쇄(Ctrl+P · 인쇄 단추): 화면 대신 A4 지휘 요약(진입구·계단·소화전·위험물·확인사항·화재 가정 + 3D 그림) — tools.js 와 같은 내용
-function buildPrint() { try { $('printSheet').innerHTML = tools.printSheet(); } catch (e) { console.warn('[FireBIM] 인쇄 요약 만들기 실패', e); } }
+function buildPrint() { try { $('printSheet').innerHTML = tools.printSheet(); } catch (e) { console.warn('[FIRE-3D BEAM] 인쇄 요약 만들기 실패', e); } }
 addEventListener('beforeprint', buildPrint);
 // 아이콘(인라인 SVG): 도구 열 · 보기 줄 · 머리줄
 const DOCKICON = { section: 'section', xray: 'xray', isolate: 'isolate', measure: 'measure', area: 'area', follow: 'follow', minimap: 'minimap', shot: 'shot', brief: 'brief', shadow: 'shadow', lowq: 'lowq', help: 'help' };
@@ -1382,13 +1382,13 @@ canvas.addEventListener('pointerdown', () => mkHide(true));
 // ── 출동 전 30초 요약(오른쪽 맨 위)
 function brief30() { panels.brief30({ plan: lastPlan && !(train && train.hidden()) ? lastPlan : null, search: search && fire && !(train && train.hidden()) ? search.last() : null }); }
 $('b30').addEventListener('click', (e) => {
-  if (e.target.closest('.hd')) { const o = !$('b30').classList.contains('open'); $('b30').classList.toggle('open', o); e.target.closest('.hd').setAttribute('aria-expanded', o); store.set('firebim.b30', o ? '1' : '0'); return; }
+  if (e.target.closest('.hd')) { const o = !$('b30').classList.contains('open'); $('b30').classList.toggle('open', o); e.target.closest('.hd').setAttribute('aria-expanded', o); store.set('fire3dbeam.b30', o ? '1' : '0'); return; }
   const b = e.target.closest('[data-b30]'); if (!b) return;
   const k = b.dataset.b30;
   if (k === 'issues') $('bissue').click();
   else if (k === 'haz') { showTab('haz'); if (narrow()) { $('app').classList.add('showL'); $('app').classList.remove('showR'); } else $('app').classList.remove('noL'); }
 });
-if (store.get('firebim.b30') === '0') $('b30').classList.remove('open');
+if (store.get('fire3dbeam.b30') === '0') $('b30').classList.remove('open');
 setTheme(document.documentElement.dataset.theme || 'night'); setFont(fz);
 function miniDyn(fid) {
   const d = { fid };

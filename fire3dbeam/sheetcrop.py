@@ -10,12 +10,12 @@
      줄의 절반 이상에 글자 → 표로 보고 흰색으로 지움(좌표는 그대로).
   4) 남은 그림에서 realplan.sheet_layout 의 도면 영역 중 가장 큰 것(+ 같은 크기 수준의 다른 평면은 split 에서).
 캡션 나누기(split_regions): 한 시트에 평면도가 여럿(캡션 '1층 평면도'·'2층 평면도')이면 캡션마다 가장 가까운(주로 위쪽) 도면 영역을 대응시켜 층별로 자름.
-끄기: FIREBIM_SHEET_CROP2=0 (예전 crop_sheet)."""
+끄기: FIRE3DBEAM_SHEET_CROP2=0 (예전 crop_sheet)."""
 import os
 import numpy as np, cv2
 
-ENABLED = os.environ.get('FIREBIM_SHEET_CROP2', '1') != '0'
-THICK_FRAME = os.environ.get('FIREBIM_THICK_FRAME', '1') != '0'
+ENABLED = os.environ.get('FIRE3DBEAM_SHEET_CROP2', '1') != '0'
+THICK_FRAME = os.environ.get('FIRE3DBEAM_THICK_FRAME', '1') != '0'
 
 
 def _K(w, h): return cv2.getStructuringElement(cv2.MORPH_RECT, (max(1, int(w)), max(1, int(h))))
@@ -91,7 +91,7 @@ def title_strip(ink, fb, mm_px):
     return best
 
 
-TABLE_TEXT = os.environ.get('FIREBIM_TABLE_TEXT', '1') != '0'   # 표 칸 줄에 '글자'가 있어야 표(2026-10-04: 타일 줄눈 그린 옥상 평면을 표로 보고 지우던 것 — 새 세트 E 지붕층)
+TABLE_TEXT = os.environ.get('FIRE3DBEAM_TABLE_TEXT', '1') != '0'   # 표 칸 줄에 '글자'가 있어야 표(2026-10-04: 타일 줄눈 그린 옥상 평면을 표로 보고 지우던 것 — 새 세트 E 지붕층)
 
 
 def _has_chars(band, mm_px):
@@ -157,7 +157,7 @@ def table_boxes(ink, area_box, mm_px):
 
 def analyze(img):
     """시트 그림 → dict(scale f(원본/q), frame, title, tables, regions, crop[원본 px]) | None(시트 아님)"""
-    from firebim import realplan as RP
+    from fire3dbeam import realplan as RP
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
     H, W = g.shape
     f = max(1, int(round(max(H, W) / 1240)))
@@ -207,7 +207,7 @@ def crop(img, A=None):
     return cut(img, A, b)
 
 
-BUBBLE_KEEP = os.environ.get('FIREBIM_CROP_BUBBLES', '1') != '0'     # 도면 영역 밖으로 떨어져 한 줄로 선 그리드 버블 원까지 자르기 범위 넓힘(2026-10-03 2차 — 안전장치: 시험 세트 7종에서는 버블이 이미 영역 안이라 발동 0회)
+BUBBLE_KEEP = os.environ.get('FIRE3DBEAM_CROP_BUBBLES', '1') != '0'     # 도면 영역 밖으로 떨어져 한 줄로 선 그리드 버블 원까지 자르기 범위 넓힘(2026-10-03 2차 — 안전장치: 시험 세트 7종에서는 버블이 이미 영역 안이라 발동 0회)
 
 
 def bubble_extend(A, box, reach_mm=30):
@@ -268,7 +268,7 @@ def cut(img, A, b):
     return out, [int(x0), int(y0), int(x1), int(y1)], wiped
 
 
-SPLIT_TIGHT = os.environ.get('FIREBIM_SPLIT_TIGHT', '0') == '1'   # (시험용, 기본 끔) 칸을 평면 잉크 범위로 좁힘 — ZM 1층 약한 치수 판독이 37.3→41.3 으로 바뀌어 채택 안 함. 빈 종이는 STR 빈 타일 건너뛰기로 대신
+SPLIT_TIGHT = os.environ.get('FIRE3DBEAM_SPLIT_TIGHT', '0') == '1'   # (시험용, 기본 끔) 칸을 평면 잉크 범위로 좁힘 — ZM 1층 약한 치수 판독이 37.3→41.3 으로 바뀌어 채택 안 함. 빈 종이는 STR 빈 타일 건너뛰기로 대신
 
 
 def split_regions(img, captions, A=None):

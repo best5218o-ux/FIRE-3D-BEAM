@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__)); VD = os.path.join(ROOT, 'view
 def bundle():
     js = os.path.join(VD, 'dist', 'app.js')
     esb = os.path.join(VD, 'node_modules', '.bin', 'esbuild')
-    if os.environ.get('FIREBIM_PREBUILT') or not os.path.exists(esb):     # 오프라인(내부 PC): node 없이 미리 빌드한 번들 사용
+    if os.environ.get('FIRE3DBEAM_PREBUILT') or not os.path.exists(esb):     # 오프라인(내부 PC): node 없이 미리 빌드한 번들 사용
         if os.path.exists(js): return open(js, encoding='utf-8').read()
         raise SystemExit('viewer/dist/app.js 없음 — 인터넷 PC에서 offline/build_bundle.sh 로 번들을 먼저 만드세요')
     subprocess.run([os.path.join(VD, 'node_modules', '.bin', 'esbuild'), 'src/main.js', '--bundle', '--minify', '--format=iife', '--target=es2020',

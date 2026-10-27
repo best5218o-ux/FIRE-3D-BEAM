@@ -2,7 +2,7 @@
 """사전 활동계획서(인쇄용 HTML 1장) — 변환 결과(res) + 지휘화면 데이터(D) 에서 화점과 무관한 부분만 정리.
   위험요소 → 외부 부서(면별 접근·펌프차·송수구·소화전·고가사다리차·진입창) → 진입로 → 수직동선 → 층별(대피·소방시설) → 확인사항.
 화점·경보를 넣어야 나오는 활동계획(화점 경로·호스 본수·공기호흡기 귀환 한계·화점 기준 인명검색 순서)은 3D 지휘화면에서 산출한다.
-화점과 무관한 인명검색 우선 실(평시 대피 곤란·용도·계단 거리, firebim/search.static_order)은 여기 5-1 절에 싣는다.
+화점과 무관한 인명검색 우선 실(평시 대피 곤란·용도·계단 거리, fire3dbeam/search.static_order)은 여기 5-1 절에 싣는다.
 인터넷 없이 열림(외부 글꼴·스크립트 없음). 관계인 성명·연락처는 결과 JSON 에 없으면(기본) 여기에도 없다."""
 import datetime, html, os
 
@@ -14,7 +14,7 @@ def _e(x): return html.escape('' if x is None else str(x))
 
 
 def _ko(fid):
-    from firebim.export import ko_name
+    from fire3dbeam.export import ko_name
     try: return ko_name(fid)
     except Exception: return str(fid)
 
@@ -32,7 +32,7 @@ def _table(head, rows, cls=''):
 
 
 def build(res, D, html_name=None, src_note=None):
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     card = res.get('card') or {}
     B = D.get('building') or {}
     S = card.get('건물구조') or {}
@@ -107,8 +107,8 @@ def build(res, D, html_name=None, src_note=None):
         rows.append([_e(_ko(f)), _e(c.get('use') or ''), (_num(c.get('area')) + '㎡') if c.get('area') else '-', evt, ' · '.join(fac) or '-'])
     out.append(_table(['층', '용도', '면적(카드)', '대피(보행거리)', '소방시설(정보카드 수량 · 위치 확실성)'], rows, 'floors'))
     out.append('<p class="src">위치확인 = 도면 기호에서 위치를 찾음 · 위치추정 = 법정 설치 기준으로 추정(현장 확인) · 수량만 = 정보카드 수량뿐(위치 모름) · 일부위치 = 일부만 도면에서 찾음</p>')
-    # ── 5-1. 인명검색 우선 실(화점 미정) — firebim/search.py static_order(기준값 sop.py SEARCH, 임시값)
-    from firebim.search import static_order, CLASS_KO, CAT_KO
+    # ── 5-1. 인명검색 우선 실(화점 미정) — fire3dbeam/search.py static_order(기준값 sop.py SEARCH, 임시값)
+    from fire3dbeam.search import static_order, CLASS_KO, CAT_KO
     so = static_order(D, mode='night', top=3) if (D.get('evac') or {}).get('floors') else {}
     rows = []
     for f in fids:

@@ -8,7 +8,7 @@ python -m evalr.card_eval data_std [data_std_hold ...]      (run_all 도 건물�
 import glob, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from firebim.card import parse_card, extract_figures, parse_fac
+from fire3dbeam.card import parse_card, extract_figures, parse_fac
 
 GROUPS = ['기본(①②③)', '소재지(④)', '거리(⑤)', '소방용수(⑥)', '건물구조(⑦)', '관계인(⑧)', '위험물(⑨)', '층별현황(⑩)', '소방시설항목(⑩)', '그림(⑪)', '동 수']
 

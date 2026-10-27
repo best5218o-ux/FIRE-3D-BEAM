@@ -296,7 +296,7 @@ def gas_template(img, M, leg, Z, words=None, cols=None):
 
 
 GAS_NCC, GAS_CEN, GAS_RING = 0.62, 40, 0.7      # 가상 18동 기준 양성 최저 0.66 · 음성 최고 0.57 의 중간
-GAS_NCC_SCAN = float(os.environ.get('FIREBIM_GAS_NCC_SCAN', '0.75'))   # 스캔본: 흐림으로 그리드선·벽 교차점이 원형 기호와 0.62~0.69 상관 → 문턱 올림(dev 에서만 정함)
+GAS_NCC_SCAN = float(os.environ.get('FIRE3DBEAM_GAS_NCC_SCAN', '0.75'))   # 스캔본: 흐림으로 그리드선·벽 교차점이 원형 기호와 0.62~0.69 상관 → 문턱 올림(dev 에서만 정함)
 
 
 def _ring_feats(gray, x, y, r):

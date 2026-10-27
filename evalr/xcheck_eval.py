@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """규칙↔모델 교차검증(검수 대상) 채점 — 가상 정답(gt.json) 기준.
-사용: python -m evalr.xcheck_eval [DATA=data] [OUT=out_model]   (먼저 FIREBIM_MODEL=1 OUT=out_model python run_all.py 6)
+사용: python -m evalr.xcheck_eval [DATA=data] [OUT=out_model]   (먼저 FIRE3DBEAM_MODEL=1 OUT=out_model python run_all.py 6)
 - 규칙만 본 벽 조각(rule_only): 정답 벽(±0.4 m)과 겹치는 길이 < 50% 이면 '실제 오류'(규칙 오검출 벽)
 - 모델만 본 벽 조각(model_only): 정답 벽과 겹치는 길이 ≥ 50% 이면 '실제 오류'(규칙이 놓친 벽)
 - 모델 보충 문(src=model): 정답 문 0.9 m 이내면 정답(외벽 개구부는 폭/2 허용)
@@ -14,7 +14,7 @@ from evalr.score import eng_map, gt_map
 
 TOL = 0.4
 try:
-    from firebim.xcheck import CFG as _C; ITEM_P = _C['item_p']
+    from fire3dbeam.xcheck import CFG as _C; ITEM_P = _C['item_p']
 except Exception:
     ITEM_P = 0.5
 
@@ -132,9 +132,9 @@ def logit_fit(X, y, l2=1e-2, it=50):
 
 
 def fit(data='data', outd='out_fit'):
-    """의심도 계수 맞추기 — 반드시 개발 세트(data/)에서만. 결과를 firebim/xcheck.py CFG['coef'] 에 넣는다.
-    (먼저 FIREBIM_XCHECK_CFG='{"wall_fill":false,"door_add":false,"item_p":0}' FIREBIM_MODEL=1 OUT=out_fit python run_all.py 6)"""
-    from firebim.xcheck import feats
+    """의심도 계수 맞추기 — 반드시 개발 세트(data/)에서만. 결과를 fire3dbeam/xcheck.py CFG['coef'] 에 넣는다.
+    (먼저 FIRE3DBEAM_XCHECK_CFG='{"wall_fill":false,"door_add":false,"item_p":0}' FIRE3DBEAM_MODEL=1 OUT=out_fit python run_all.py 6)"""
+    from fire3dbeam.xcheck import feats
     s = main(data, outd, verbose=True)
     co = {}
     for k in ('rule_only', 'model_only'):

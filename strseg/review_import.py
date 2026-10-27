@@ -28,13 +28,13 @@ def main():
     ap.add_argument('review_dir'); ap.add_argument('--cache', default=D.CACHE); ap.add_argument('--all', action='store_true')
     ap.add_argument('--no-model', action='store_true', help='창 무시 영역 계산에 모델을 쓰지 않음')
     a = ap.parse_args()
-    from firebim.str_seg import WORK_PPM_1_100
+    from fire3dbeam.str_seg import WORK_PPM_1_100
     coco = json.load(open(os.path.join(a.review_dir, 'annotations.json'), encoding='utf-8'))
     cat = {c['id']: c['name'] for c in coco['categories']}
     seg = None
     if not a.no_model:
         try:
-            from firebim.str_seg import StrSeg
+            from fire3dbeam.str_seg import StrSeg
             seg = StrSeg()
         except Exception as e:
             print('모델 없음 → 창 무시 영역 생략:', e)

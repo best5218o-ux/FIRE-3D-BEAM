@@ -15,7 +15,7 @@
 모든 수치는 **임시값** — 기관 SOP(인명검색 지침)로 정해야 한다. 실 이름이 없으면(가상 정보카드 도면은 실명 OCR 안 함) 정보카드 ⑩ 층 용도 + 실 모양으로 추정."""
 import math, re
 
-from firebim.sop import SEARCH            # 기준값은 sop.py 한 곳(SEARCH · ACT · TRAIN)
+from fire3dbeam.sop import SEARCH            # 기준값은 sop.py 한 곳(SEARCH · ACT · TRAIN)
 
 CLASS_KO = {'iso': '고립(대피로 없음)', 'fire': '화재실(화점 구역)', 'shared': '공격계단 공용', 'near': '화점 인접 경로', 'detour': '우회 증가',
             'ok': '정상', 'none': '대피 경로 없음(평시)', 'above': '화점 직상부', 'hard': '평시 대피 곤란(기준 초과·한 방향)'}

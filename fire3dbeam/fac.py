@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """층별 소방시설 목록 + 위치 확실성(located / estimated / present)
-입력: 정보카드 '층별 소방시설 설치현황'(분류표 firebim/fac_catalog.py 로 해석), 도면 범례 기호(기존 소화전·수신기 + 추가 소화기·방수구·비상콘센트·송수구),
+입력: 정보카드 '층별 소방시설 설치현황'(분류표 fire3dbeam/fac_catalog.py 로 해석), 도면 범례 기호(기존 소화전·수신기 + 추가 소화기·방수구·비상콘센트·송수구),
       계단·승강기(층간 클러스터), 문(벽 틈)
 - located  : 도면 범례 기호로 찾은 위치
 - estimated: 규칙 추정 위치(방수구 NFPC 502 제6조 · 비상콘센트 NFTC 504 2.1.5.2 → 계단 출입구 5 m 반경, 비상용승강기 → 건물 단위 점수: 승강기 앞 닫힌 승강장·부속실 구획 / 비상용 글자 / 계단 근접 / 전 층 운행 / 피난층 출구 30 m, 대수 = 정보카드 — emev_rank)
 - present  : 정보카드 수량만(스프링클러 헤드·감지기 등 — 가짜 위치를 만들지 않고 층 단위 존재·수량만)
 카드 수량 ↔ 도면 기호 수 교차검증 플래그 kind='fac_count' (방수구·비상콘센트·송수구: 도면에 그렸으면 수가 같아야 함 / 소화기: 도면 ≤ 카드)"""
 import math, os
-from firebim.fac_catalog import CATALOG, SYMBOL_CODE, RULES
-from firebim.card import level_of
+from fire3dbeam.fac_catalog import CATALOG, SYMBOL_CODE, RULES
+from fire3dbeam.card import level_of
 
 EXACT = {'STANDPIPE', 'OUTLET', 'SIAMESE'}          # 도면에 그렸으면 층의 전부를 그리는 항목(수 일치 요구)
 OLD_SYM = {'hose': 'HOSE', 'panel': 'PANEL'}        # 기존 기호(수량 불일치는 기존 hose_count 플래그가 담당)
@@ -60,7 +60,7 @@ def stair_anchor(S, doors, fp, exits=()):
 EMEV_W = dict(label=3.0, lobby=3.0, stair=0.05, allfloor=0.3, no_ground=-2.0, ground_far=-1.0, decisive=0.5)   # decisive: 1·2위 점수 차 문턱(개발 세트에서만 정함)
 EMEV_WORDS = [('비상', 3.0), ('피난용', 2.5), ('부속실', 2.0), ('전실', 2.0), ('승강장', 2.0)]
 EMEV_LOBBY = dict(tol=0.2, side=2.0, dmin=1.6, dmax=4.0, front=(0.4, 2.2), hw=1.15, ext=1.6)   # 앞 구역: 선 허용(m)·옆벽 확인 길이·끝벽 깊이 범위·승강로 앞벽 거리·기본 반폭·옆벽 바깥 탐색(부속실 겸용)
-EMEV_OCR_MIN_S = float(os.environ.get('FIREBIM_EMEV_OCR_MIN_S', '14'))   # 글자 OCR 은 도면 축척 ≥ 이 값(px/m)일 때만: 실명 글자(≈0.5~0.75 m)가 10 px 미만이면 판독 불가
+EMEV_OCR_MIN_S = float(os.environ.get('FIRE3DBEAM_EMEV_OCR_MIN_S', '14'))   # 글자 OCR 은 도면 축척 ≥ 이 값(px/m)일 때만: 실명 글자(≈0.5~0.75 m)가 10 px 미만이면 판독 불가
 
 
 def _ecen(E): return ((E['box'][0] + E['box'][2]) / 2, (E['box'][1] + E['box'][3]) / 2)
@@ -79,7 +79,7 @@ def _row_axis(k, cen):
 def _ink(p):
     """도면 p 의 선 잉크(무채색) — 글자 덩어리·작은 조각·그리드선(얇은 구간) 제외. 벽 벡터화가 놓치는 얇은 칸막이(1~2 px)까지 본다"""
     import cv2, numpy as np
-    from firebim.vision import masks
+    from fire3dbeam.vision import masks
     M = p.get('M') or masks(p['img']); s = p['s']
     ink = ((M['lum'] < 215) & (M['sat'] < 45)).astype(np.uint8)
     n, lab, st, _ = cv2.connectedComponentsWithStats(ink, 8)
@@ -142,7 +142,7 @@ def _front_zone(ink, p, c, hw, axis):
 
 def _word_hit(t):
     """OCR 글자 → (어휘, 가중) 또는 None. '승강기홀'·'승강기' 는 승강장이 아님(자모 유사 매칭에서 제외)"""
-    from firebim.vision import _jsim
+    from fire3dbeam.vision import _jsim
     t = ''.join(ch for ch in t if '가' <= ch <= '힣')
     if not t: return None
     for w, v in EMEV_WORDS:
@@ -161,7 +161,7 @@ def _word_hit(t):
 def _ocr_words(p, boxes, pad=5.0):
     """도면 p 에서 승강기 상자들 둘레(pad m) 글자 → [(전역 x, y, 글자)]. 3배 확대 tesseract kor"""
     import cv2
-    from firebim.vision import ocr_tsv
+    from fire3dbeam.vision import ocr_tsv
     s, tx, ty, img = p['s'], p['tx'], p['ty'], p['img']
     H, W = img.shape[:2]
     X0 = min(b[0] for b in boxes) - pad; X1 = max(b[2] for b in boxes) + pad

@@ -8,13 +8,13 @@
   obstacles[]       {kind,poly}                        가로수·가공전선 등 사다리 전개 불가 구간
   hydrants[]        {id,type,x,y}                      소방용수시설(정보카드 ⑥ 의 번호와 같은 id)
   fdc[]             {name,x,y}                         연결송수관 송수구
-기준값은 firebim.sop.CFG (사다리 길이·전개 반경·도로 폭 등은 '기관 SOP 값으로 설정 필요')."""
+기준값은 fire3dbeam.sop.CFG (사다리 길이·전개 반경·도로 폭 등은 '기관 SOP 값으로 설정 필요')."""
 import json, math, heapq
 from shapely.geometry import Polygon, LineString, Point, box
 from shapely.ops import unary_union
 from shapely.geometry.polygon import orient
-from firebim.sop import CFG
-from firebim.card import level_of
+from fire3dbeam.sop import CFG
+from fire3dbeam.card import level_of
 
 DIRS = [(0, '북측면'), (90, '동측면'), (180, '남측면'), (270, '서측면')]
 
@@ -325,7 +325,7 @@ def analyze(site, fps, floor_ids, info=None, floor_h=None, cfg=CFG, walls=None):
 
 # ───────────────────────── 진압작전도(정보카드 ⑪ '0 진압작전도') → 부지 자료 ─────────────────────────
 def from_drawing(fr, site_json=None):
-    """firebim.sitemap.to_frame 결과(엔진 좌표) → analyze 입력 형식의 부지 dict.
+    """fire3dbeam.sitemap.to_frame 결과(엔진 좌표) → analyze 입력 형식의 부지 dict.
     도로·소화전·송수구·주출입구/비상구는 작전도에서, 사다리 전개 장애(가로수·전선)는 GIS 부지 자료(site.json)가 있으면 그것에서."""
     hyd = []
     for k, h in enumerate(fr['hydrants']):

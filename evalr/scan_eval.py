@@ -16,7 +16,7 @@ def _dirs(D, n=None):
 
 
 def fields(D, n=None, quiet=False):
-    from firebim.card import parse_card, extract_figures
+    from fire3dbeam.card import parse_card, extract_figures
     acc = {g: [0, 0] for g in GROUPS}; rows = []
     by_dpi = {}
     for d in _dirs(D, n):
@@ -76,7 +76,7 @@ def calib_table(pts):
 
 def calib(D, n=None):
     """필드 신뢰도 ↔ 정답 여부(동1 기준): 구간별 정답률 + 문턱별 (플래그 수, 플래그가 잡는 오답 비율)"""
-    from firebim.card import parse_card
+    from fire3dbeam.card import parse_card
     pts = []
     for d in _dirs(D, n):
         info, _ = parse_card(os.path.join(d, 'card.pdf'), dong=0)
@@ -123,7 +123,7 @@ def field_ok(G, info, f):
         if p[0] == '층별현황':
             g = next((r for r in G['층별현황'] if r['층'] == p[1]), None); q = next((r for r in P.get('층별현황') or [] if r['층'] == p[1]), None)
             if g is None or q is None: return False if q is not None else None
-            from firebim.card import parse_fac
+            from fire3dbeam.card import parse_fac
             k = p[2]
             if k == '층': return _eq(g['층_원문'], q.get('층_원문'))
             if k == '면적': return _eq(g['면적'], q.get('면적'), 0.005)
@@ -137,7 +137,7 @@ def field_ok(G, info, f):
 # ───────────── 종단(파이프라인) 비교
 def _run(pdf, out_json):
     if os.path.exists(out_json): return json.load(open(out_json, encoding='utf-8'))
-    from firebim.pipeline import run
+    from fire3dbeam.pipeline import run
     t0 = time.time(); r = run(pdf); r['_sec'] = round(time.time() - t0, 1)
     os.makedirs(os.path.dirname(out_json), exist_ok=True)
     json.dump(r, open(out_json, 'w', encoding='utf-8'), ensure_ascii=False)
@@ -156,7 +156,7 @@ def _plan_frames(text_pdf, scan_pdf, dong=0):
     dong: 파이프라인이 고른 동(기본 0)의 평면도만 — (2026-10-01 수정) 예전에는 여러 동 카드에서 둘째 동의 같은 층 이름(1F 등) 그림이
     첫 동 층의 대응을 덮어써, 그 층은 축척이 맞아도 정합 실패로 채점됐다(dev 9층·원본 카드와 무관한 채점기 오류). None = 예전 방식"""
     import cv2, numpy as np, pymupdf
-    from firebim.card import extract_figures
+    from fire3dbeam.card import extract_figures
     T = [f for f in extract_figures(pymupdf.open(text_pdf)) if f['kind'] == '평면도' and (dong is None or f.get('dong', 0) == dong)]
     S = [f for f in extract_figures(pymupdf.open(scan_pdf)) if f['kind'] == '평면도']
     out = {}

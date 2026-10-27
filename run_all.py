@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """가상 건물 일괄: 생성(없으면) → 변환 → 채점 → 유형별 요약.  python run_all.py [n_per_type] [--model]   (RESCORE=1: 저장된 변환 JSON 으로 채점만, WORKERS=1: 1 프로세스)
 표준양식 세트: SYNTH_FORM=mix SYNTH_DATA=data_std OUT=out_std python run_all.py 6  /  SYNTH_FORM=mix SYNTH_DATA=data_std_hold SYNTH_SEED_OFS=5000 OUT=out_std_hold python run_all.py 6
---model (또는 FIREBIM_MODEL=1): STR 모델 교차검증 경로(firebim/xcheck.py) — 기본은 규칙만. 교차검증 채점은 python -m evalr.xcheck_eval DATA OUT"""
+--model (또는 FIRE3DBEAM_MODEL=1): STR 모델 교차검증 경로(fire3dbeam/xcheck.py) — 기본은 규칙만. 교차검증 채점은 python -m evalr.xcheck_eval DATA OUT"""
 import json, os, sys, glob, subprocess, asyncio
 from multiprocessing import Pool
 import numpy as np
@@ -19,7 +19,7 @@ def work(d):
         r = json.load(open(f'{OUT}/{name}.json'))
         return dict(score(json.load(open(os.path.join(d, 'gt.json'))), r), **card_std_score(d, r))
     try:
-        from firebim.pipeline import run
+        from fire3dbeam.pipeline import run
         r = run(os.path.join(d, 'card.pdf'))
         json.dump(r, open(f'{OUT}/{name}.json', 'w'), ensure_ascii=False)
         return dict(score(json.load(open(os.path.join(d, 'gt.json'))), r), **card_std_score(d, r))
@@ -33,7 +33,7 @@ def frac(v):
 
 
 if __name__ == '__main__':
-    if '--model' in sys.argv: sys.argv.remove('--model'); os.environ['FIREBIM_MODEL'] = '1'
+    if '--model' in sys.argv: sys.argv.remove('--model'); os.environ['FIRE3DBEAM_MODEL'] = '1'
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 6
     os.makedirs(OUT, exist_ok=True)
     if len(glob.glob(f'{DATA}/*/card.pdf')) < 3 * n:
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         if cs: summ[bt]['card_std'] = cs
     json.dump(summ, open(f'{OUT}/summary.json', 'w'), ensure_ascii=False, indent=1)
     for k, v in summ.items(): print(k, json.dumps(v, ensure_ascii=False))
-    if os.environ.get('FIREBIM_MODEL', '').lower() in ('1', 'true', 'on', 'yes'):
+    if os.environ.get('FIRE3DBEAM_MODEL', '').lower() in ('1', 'true', 'on', 'yes'):
         from evalr.xcheck_eval import main as xmain
         xs = xmain(DATA, OUT); json.dump(xs, open(f'{OUT}/xcheck_eval.json', 'w'), ensure_ascii=False, indent=1)
         print('XCHECK', json.dumps({k: xs[k] for k in ('rule_only', 'model_only', 'items_p>=0.5', 'capture', 'added_doors') if k in xs}, ensure_ascii=False))

@@ -1,6 +1,6 @@
 // 훈련 모드 채점 — 시나리오(무작위·현재 화점, 주간/야간)에서 훈련자가 진입구·공격계단·호스 본수·인명검색 순서를 정하면
 // 같은 모델의 산출안(main.js drawFire → lastPlan)과 항목별 비교·채점. 산출안은 제출 전까지 숨김. 결과는 JSON·HTML 로 저장(오프라인, 서버 없음).
-// 배점·허용 범위 = D.sop_train(firebim/sop.py TRAIN, 임시값).
+// 배점·허용 범위 = D.sop_train(fire3dbeam/sop.py TRAIN, 임시값).
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { CLASS_KO, CAT_KO } from './search.js';
@@ -104,7 +104,7 @@ export function initTrain(ctx) {
     const tot = items.reduce((a, z) => a + z.pts, 0), mx = items.reduce((a, z) => a + z.max, 0);
     const rooms = roomsOf(P.fid);
     return {
-      tool: 'FireBIM 훈련 모드 채점', version: 1, created: new Date().toISOString(), building: D.building.name,
+      tool: 'FIRE-3D BEAM 훈련 모드 채점', version: 1, created: new Date().toISOString(), building: D.building.name,
       scenario: { kind: S.kind, floor: P.fid, floor_name: FL[P.fid].name, fire: [+P.x.toFixed(2), +P.y.toFixed(2)], mode: S.mode, started: S.started },
       answers: { entrance: e ? e[5] : null, stair: stair ? stair.name : null, hose: A.hose, search: A.order.map((k) => ({ room: k, area: rooms[k] ? rooms[k].area : null, c: rooms[k] ? rooms[k].c : null })) },
       reference: { entrance: P.entry ? P.entry.name : null, stair: P.attackName, route_m: +P.routeLen.toFixed(1), hose: P.hoseN, hose_m: P.hoseL != null ? +P.hoseL.toFixed(1) : null,
@@ -140,7 +140,7 @@ export function initTrain(ctx) {
     return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>훈련 채점 보고서</title><style>${css}</style></head><body><h1>훈련 채점 보고서</h1>
 <p>${esc(R.building)} · ${esc(R.scenario.floor_name)} 화재(${R.scenario.fire.join(', ')}) · ${R.scenario.mode === 'night' ? '야간' : '주간'} · ${esc(R.created)}</p><p class="big">점수 <b>${R.score100}</b>/100 (${R.total}/${R.max}) · 결정 시간 ${R.elapsed_s}초</p>
 ${resultHtml(R, true)}<h3>산출안 인명검색 순서(화재층)</h3><table><tr><td class="k">순위</td><td class="k">분류</td><td class="k">용도</td><td class="k">거리</td><td class="k">근거</td></tr>${ref}</table>
-<p class="note">FireBIM 3D 지휘화면 훈련 모드에서 내보냄 — 배점·기준값은 임시값(교육 지침으로 설정). 개인 식별 정보 없음.</p></body></html>`;
+<p class="note">FIRE-3D BEAM 3D 지휘화면 훈련 모드에서 내보냄 — 배점·기준값은 임시값(교육 지침으로 설정). 개인 식별 정보 없음.</p></body></html>`;
   }
   function readForm() {
     if (!S || S.result) return;

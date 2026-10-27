@@ -5,7 +5,7 @@ python -m evalr.realsym_eval [dev|held|all] [--only c01,c02] [--det rooms,doors,
 import os, sys, json, time, argparse
 import numpy as np, cv2
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from firebim import realsym as RS
+from fire3dbeam import realsym as RS
 
 SRC = os.environ.get('AIHUB_OBJ2', './aihub/obj2')
 GT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'realsym_gt.json')

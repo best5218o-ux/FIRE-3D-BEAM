@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Colab(또는 로컬)에서 AI허브 TS_SPA 원천 zip → SPA 학습 캐시 + 평가용 2048 축소본. colab/FireBIM_SPA_GPU학습.ipynb 에서 사용.
+"""Colab(또는 로컬)에서 AI허브 TS_SPA 원천 zip → SPA 학습 캐시 + 평가용 2048 축소본. colab/FIRE-3D-BEAM_SPA_GPU학습.ipynb 에서 사용.
 zip 을 풀지 않고 한 장씩 읽어(PIL LANCZOS → 긴 변 2048, 로컬 축소본과 같은 방식 — downscale()) 역할별로 저장:
   - 개발(dev, 학습 가능 = spa_data.trainable)  → SPA_SEG_CACHE/<STEM>.npz (spa_train.prep_arrays: 1/2 축척 영상 + 마스크)
   - 개발 중 devval                            → 위 npz + AIHUB_SPA_IMG/<파일>.PNG (spa_eval devval 용 2048 축소본)

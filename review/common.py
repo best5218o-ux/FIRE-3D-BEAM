@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """검수·채점 공통: 결과 JSON 읽기, 원본 PDF 찾기, 도면 이미지, 좌표 변환(m ↔ 도면 px), 안전한 파일 쓰기.
-엔진(firebim) 내부 구조 대신 결과 JSON 스키마(card/floors/stairs/elevs/flags/plans)에만 기대도록 작성."""
+엔진(fire3dbeam) 내부 구조 대신 결과 JSON 스키마(card/floors/stairs/elevs/flags/plans)에만 기대도록 작성."""
 import base64, hashlib, json, os, re, shutil, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TYPES = ['exit', 'hose', 'panel', 'gas', 'ev']
 KO = {'exit': '비상구', 'hose': '옥내소화전', 'panel': '수신기', 'gas': '가스밸브', 'ev': '승강기'}
-SCHEMA = 'firebim.review/1'
+SCHEMA = 'fire3dbeam.review/1'
 
 
 def load_json(p):
@@ -52,14 +52,14 @@ def find_pdf(result_path, res, pdf=None):
 
 def plan_images(pdf, res):
     """PDF에서 평면도 이미지(BGR)를 다시 뽑는다(OCR 없이 빠름). 개수가 안 맞으면 엔진 전체 실행(keep=True)."""
-    from firebim.card import parse_card, extract_plans
+    from fire3dbeam.card import parse_card, extract_plans
     info, doc = parse_card(pdf)
     raw = extract_plans(doc)
     if info.get('양식') == 'std':                    # 여러 동 표준양식: 결과 JSON 의 선택 동 평면도만
         raw = [r for r in raw if r.get('dong', 0) == ((res.get('card') or {}).get('선택동') or 0)]
     if len(raw) == len(res.get('plans') or []):
         return [r['img'] for r in raw]
-    from firebim.pipeline import run
+    from fire3dbeam.pipeline import run
     return [p['img'] for p in run(pdf, keep=True)['_plans']]
 
 
@@ -79,7 +79,7 @@ def p2g(T, px, py):
 
 
 def plan_floors(res):
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     out = {}
     for fid, F in res['floors'].items(): out.setdefault(F['plan'], []).append(fid)
     return {k: sorted(v, key=level_of) for k, v in out.items()}
@@ -95,17 +95,17 @@ def img_data_uri(img, maxw=2400, q=85):
 
 def ascii_tmpdir():
     """Windows: OpenCV·Tesseract·IFC 라이브러리는 한글 경로를 못 여는 경우가 있어 ASCII 임시폴더 사용"""
-    d = os.environ.get('FIREBIM_TMP') or tempfile.gettempdir()
+    d = os.environ.get('FIRE3DBEAM_TMP') or tempfile.gettempdir()
     try: d.encode('ascii')
     except UnicodeEncodeError:
-        d = os.path.join(os.environ.get('PUBLIC', 'C:\\Users\\Public'), 'FireBIM_tmp')
+        d = os.path.join(os.environ.get('PUBLIC', 'C:\\Users\\Public'), 'FIRE-3D-BEAM_tmp')
     os.makedirs(d, exist_ok=True)
     return d
 
 
 def safe_export_ifc(D, BIM, path, accuracy_note=None):
     """IFC는 ASCII 임시 경로에 쓴 뒤 옮긴다(한글 폴더 대비). accuracy_note: 검수 반영 시 '모델정확도' 속성 갱신"""
-    from firebim.export import export_ifc
+    from fire3dbeam.export import export_ifc
     fd, tmp = tempfile.mkstemp(suffix='.ifc', dir=ascii_tmpdir()); os.close(fd)
     try:
         export_ifc(D, BIM, tmp)
@@ -129,7 +129,7 @@ def safe_export_ifc(D, BIM, path, accuracy_note=None):
 
 def build_outputs(res, imgs, html_path, ifc_path, name_hint=None, note=None):
     """결과 + 도면 이미지 → 3D 지휘화면 HTML + IFC (make_demo.py 와 같은 흐름)"""
-    from firebim.export import build, to_viewer_bim
+    from fire3dbeam.export import build, to_viewer_bim
     from build_viewer import make as make_html
     plans = [dict(img=imgs[p['i']], s=p['s'], tx=p['tx'], ty=p['ty'], caption=p['caption']) for p in res['plans']]
     r = dict(res); r['_plans'] = plans

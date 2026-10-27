@@ -61,8 +61,8 @@ def door_px2g(T, d):
 def recompute_elevs(res):
     """승강기 기호를 고쳤으면 층간 반복 클러스터를 다시 만든다(엔진과 같은 규칙)"""
     import numpy as np
-    from firebim.card import level_of
-    from firebim.pipeline import cluster_vertical
+    from fire3dbeam.card import level_of
+    from fire3dbeam.pipeline import cluster_vertical
     fl = res['floors']; n_fl = len(fl)
     pts = [dict(q, floor=fid) for fid, F in fl.items() for q in F['symbols'] if q['type'] == 'ev']
     out = []
@@ -127,7 +127,7 @@ def apply(res, corr, log=print):
                     F['walls'], wst = xdec.run_wall_ops(F['walls'], xops, 1.0, conv=lambda w: wall_px2g(T, w))
                     if n_f == 0: stat['xwall_cut'] += wst['cut']; stat['xwall_added'] += wst['added']
                 try:
-                    from firebim import geom
+                    from fire3dbeam import geom
                     fp = geom.footprint_from_walls(F['walls'])
                     F['footprint_area'] = round(fp.area, 1) if fp is not None else None
                 except Exception as e:
@@ -150,7 +150,7 @@ def apply(res, corr, log=print):
     add_vertical(res, corr, pf, stat, log)
     # 교차검증 다시 → 검수자 판정 반영
     try:
-        from firebim.pipeline import checks
+        from fire3dbeam.pipeline import checks
         flags = checks(res['card'], res['floors'], res['stairs'], res['elevs'])
     except Exception as e:
         log('  교차검증 재계산 생략:', e); flags = res.get('flags') or []
@@ -177,7 +177,7 @@ def apply(res, corr, log=print):
 def add_vertical(res, corr, pf, stat, log=print):
     """검수자가 추가한 계단·승강기(도면 px 상자 + 연결층) → res['stairs'|'elevs'].
     엔진의 층간 클러스터와 같은 규칙: 같은 종류가 이미 가까이(중심 1.5 m) 있으면 연결층만 합치고, 연결층은 사이 층까지 채운다."""
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     allf = sorted(res['floors'], key=level_of)
     for v in corr.get('vertical_added') or []:
         kind = v.get('kind')

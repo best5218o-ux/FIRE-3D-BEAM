@@ -3,7 +3,7 @@
 import re
 import numpy as np
 import pymupdf
-from firebim.fac_catalog import parse_items, merge_items
+from fire3dbeam.fac_catalog import parse_items, merge_items
 
 FLOOR_TOKEN = re.compile(r'^(지하\d+|지상\d+|옥탑\d*|PIT)(층)?$')
 
@@ -50,9 +50,9 @@ def parse_fac(txt):
 
 def parse_card(pdf_path, dong=None):
     """정보카드 PDF → (info, doc). 양식 자동 판별: 표준양식(templates/소방활동정보카드_표준양식.docx) → parse_std, 아니면 기존(근사 배치) 해석.
-    dong: 여러 동 카드에서 기존 키(use·floors·stairs…)를 채울 동 번호(기본 0 = 첫 동, 환경변수 FIREBIM_DONG)"""
+    dong: 여러 동 카드에서 기존 키(use·floors·stairs…)를 채울 동 번호(기본 0 = 첫 동, 환경변수 FIRE3DBEAM_DONG)"""
     doc = pymupdf.open(pdf_path)
-    ocr = ocr_of(doc)                                # 글자층 없는 쪽(스캔본·그림으로 내보낸 카드)이 있으면 OCR(firebim/card_ocr.py)
+    ocr = ocr_of(doc)                                # 글자층 없는 쪽(스캔본·그림으로 내보낸 카드)이 있으면 OCR(fire3dbeam/card_ocr.py)
     full = doc_text(doc, ocr)
     if is_std(full):
         info = parse_std(doc, full, dong)
@@ -316,7 +316,7 @@ def parse_std(doc, full=None, dong=None):
         s = dd['건물구조'].get('구조')
         dd['내화구조'] = (any(w in s for w in FR_WORDS)) if s else None        # 주요구조부 내화 여부(정보카드 ⑦ 구조 글자 기준 추정)
         dd['위험물_있음'] = bool(dd['위험물'])
-    if dong is None: dong = int(os.environ.get('FIREBIM_DONG', '0') or 0)
+    if dong is None: dong = int(os.environ.get('FIRE3DBEAM_DONG', '0') or 0)
     dong = min(max(0, dong), max(0, len(dongs) - 1))
     sel = dongs[dong] if dongs else _new_dong()
     info = {'양식': 'std', '선택동': dong, '동목록': dongs}
@@ -405,15 +405,15 @@ def extract_figures(doc, min_pt=40):
     return out
 
 
-# ═════════════════════════════ 스캔본(글자층 없는 쪽) — firebim/card_ocr.py
+# ═════════════════════════════ 스캔본(글자층 없는 쪽) — fire3dbeam/card_ocr.py
 OCR_FLAG_CONF = 0.75         # 이 신뢰도 미만 항목 → 검수 플래그(card_ocr)
 
 
 def ocr_of(doc):
-    """글자층 없는 쪽이 있으면 OCR 분석(캐시) → dict, 없으면 None. FIREBIM_OCR=0 이면 끔"""
+    """글자층 없는 쪽이 있으면 OCR 분석(캐시) → dict, 없으면 None. FIRE3DBEAM_OCR=0 이면 끔"""
     import os
-    if os.environ.get('FIREBIM_OCR', '1') == '0': return None
-    from firebim import card_ocr
+    if os.environ.get('FIRE3DBEAM_OCR', '1') == '0': return None
+    from fire3dbeam import card_ocr
     if not card_ocr.has_image_pages(doc): return None
     return card_ocr.analyze(doc)
 
@@ -455,10 +455,10 @@ def ocr_value(info, field):
 
 def redact(info, include=None):
     """⑧ 관계인 성명·연락처(개인정보) 제거 — 기본값. 역할(구분)과 기재 여부만 남긴다.
-    내부 PC 에서 지휘관이 관리자에게 전화해야 할 때만 FIREBIM_INCLUDE_CONTACTS=1 (또는 include=True) 로 그대로 둔다."""
+    내부 PC 에서 지휘관이 관리자에게 전화해야 할 때만 FIRE3DBEAM_INCLUDE_CONTACTS=1 (또는 include=True) 로 그대로 둔다."""
     import os, copy
-    if include is None: include = os.environ.get('FIREBIM_INCLUDE_CONTACTS', '').lower() in ('1', 'true', 'on', 'yes')
-    if include: return dict(info, 개인정보='포함(FIREBIM_INCLUDE_CONTACTS=1)')
+    if include is None: include = os.environ.get('FIRE3DBEAM_INCLUDE_CONTACTS', '').lower() in ('1', 'true', 'on', 'yes')
+    if include: return dict(info, 개인정보='포함(FIRE3DBEAM_INCLUDE_CONTACTS=1)')
     out = copy.copy(info)
     red = lambda L: [dict(구분=r['구분'], 기재=bool(r.get('성명') or r.get('연락처'))) for r in (L or [])]
     if '관계인' in out: out['관계인'] = red(out['관계인'])

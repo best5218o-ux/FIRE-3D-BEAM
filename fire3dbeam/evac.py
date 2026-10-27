@@ -17,7 +17,7 @@
 import math
 import numpy as np, cv2
 from shapely.geometry import Polygon, Point, box
-from firebim.card import level_of
+from fire3dbeam.card import level_of
 
 RES, WALL, OUT_COST, SOFT, PRIOR = 0.25, 80.0, 4.0, 20.0, 0.8     # SOFT: 계단실 둘레 벽(문 미검출 대비) — 뷰어는 6, 대피로는 실제 문을 더 우선
 LAW_EVAC = {
@@ -279,7 +279,7 @@ def floor_routes(G, Gp, targets, rooms, lim_room):
 def analyze(info, floors, stairs, elevs, plans, ext=None):
     """floors: pipeline out_floors(_fp 포함) · stairs/elevs: 층간 클러스터 · plans: 도면(img, s, tx, ty, legend)
     → {'floors': {fid: {...}}, 'entry': [...], 'law': {...}, 'flags': [...]}"""
-    from firebim.export import spaces
+    from fire3dbeam.export import spaces
     title = ((ext or {}).get('daejang') or {}).get('title')
     fids = sorted(floors, key=level_of)
     ground = '1F' if '1F' in floors else fids[0]
@@ -307,7 +307,7 @@ def analyze(info, floors, stairs, elevs, plans, ext=None):
         doors = [d for d in F['doors'] if not (is_g and d.get('ext'))]            # export.build 과 같은 실 분할
         rooms = [r for r in spaces(F['walls'], doors, fp)
                  if not any(box(*b).buffer(0.3).contains(Polygon(r['poly']).representative_point()) for b in vbf + [E['box'] for E in elevs if fid in E['floors']])]
-        if F.get('room_labels'): name_rooms(rooms, F['room_labels'])          # 실제 도면: 실명 OCR(firebim/realcard.py) → 실 이름(인명검색 용도 범주)
+        if F.get('room_labels'): name_rooms(rooms, F['room_labels'])          # 실제 도면: 실명 OCR(fire3dbeam/realcard.py) → 실 이름(인명검색 용도 범주)
         if is_g:
             targets = [dict(id=f'X{k + 1}', kind='exit', name=f"옥외 출구 {k + 1} (폭 {d['w']:.1f}m)", x=float(d['x']), y=float(d['y']))
                        for k, d in enumerate([d for d in F['doors'] if d.get('ext')])]

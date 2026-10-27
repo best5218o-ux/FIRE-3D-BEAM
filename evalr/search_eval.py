@@ -72,8 +72,8 @@ def cat_accuracy(gt, res, D):
 
 
 def make_html(d, tmp):
-    from firebim.pipeline import run
-    from firebim.export import build, to_viewer_bim
+    from fire3dbeam.pipeline import run
+    from fire3dbeam.export import build, to_viewer_bim
     from build_viewer import make
     res = run(os.path.join(d, 'card.pdf'), keep=True)
     D, BIM = build(res)
@@ -81,7 +81,7 @@ def make_html(d, tmp):
     name = os.path.basename(d.rstrip('/'))
     dj = os.path.join(tmp, name + '.data.json'); html = os.path.join(tmp, name + '.html')
     json.dump(dict(D=D, BIM=to_viewer_bim(BIM)), open(dj, 'w'), ensure_ascii=False)
-    os.environ['FIREBIM_PREBUILT'] = '1'
+    os.environ['FIRE3DBEAM_PREBUILT'] = '1'
     make(dj, html)
     os.remove(dj)
     return res, D, html
@@ -226,8 +226,8 @@ def main(data, outdir, n=18, nfl=3, npts=2):
 
 def cat_only(data, outdir):
     """범주 추정 정확도만(브라우저 없이) — 변환 → D → 정답 비교"""
-    from firebim.pipeline import run
-    from firebim.export import build
+    from fire3dbeam.pipeline import run
+    from fire3dbeam.export import build
     conf_all = {}; rows = []
     for d in sorted(glob.glob(os.path.join(data, '*/'))):
         gt = json.load(open(os.path.join(d, 'gt.json')))

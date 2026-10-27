@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""선택 경로(model=True): 정보카드 평면도 → STR 분할 모델(firebim/str_seg) 을 규칙 추출기(geom.py)와 **독립된 두 번째 추출기**로 돌려
+"""선택 경로(model=True): 정보카드 평면도 → STR 분할 모델(fire3dbeam/str_seg) 을 규칙 추출기(geom.py)와 **독립된 두 번째 추출기**로 돌려
 (1) 벽 교차검증 — 두 추출기가 모두 본 벽 = 높은 신뢰도, 한쪽만 본 벽 조각 = '검수 필요'(신뢰도·의심도 포함)
 (2) 규칙이 놓친 문·외벽 개구부(진입구) 보충 — 모델이 확신할 때만
 (3) (선택) 규칙 벽의 끊긴 틈 중 모델이 벽으로 보고 문으로 보지 않는 곳 메우기
@@ -34,14 +34,14 @@ CFG = dict(
 # 의심도 계수는 모델 출력에 맞춘 것 → 모델 .json 의 "xcheck_coef" 가 있으면 그것(위 coef = 이전 v3 모델용, models/str_seg_v3.json 에는 없음)
 try:
     import json as _json
-    from firebim.str_seg import MODEL as _M
+    from fire3dbeam.str_seg import MODEL as _M
     _mj = os.path.splitext(_M)[0] + '.json'
     if os.path.exists(_mj): CFG['coef'] = dict(CFG['coef'], **(_json.load(open(_mj)).get('xcheck_coef') or {}))
 except Exception:
     pass
-if os.environ.get('FIREBIM_XCHECK_CFG'):          # 조정 실험용(JSON 덮어쓰기)
+if os.environ.get('FIRE3DBEAM_XCHECK_CFG'):          # 조정 실험용(JSON 덮어쓰기)
     import json as _json
-    CFG.update(_json.loads(os.environ['FIREBIM_XCHECK_CFG']))
+    CFG.update(_json.loads(os.environ['FIRE3DBEAM_XCHECK_CFG']))
 
 
 def _gray(img):
@@ -54,16 +54,16 @@ _SEG = None
 def _seg():
     global _SEG
     if _SEG is None:
-        from firebim.str_seg import StrSeg
-        _SEG = StrSeg(threads=int(os.environ.get('FIREBIM_MODEL_THREADS', '1')))
+        from fire3dbeam.str_seg import StrSeg
+        _SEG = StrSeg(threads=int(os.environ.get('FIRE3DBEAM_MODEL_THREADS', '1')))
     return _SEG
 
 
 def model_plan(img, s, tile=None, even=False, skip_blank=False, roi=None):
     """평면도 1장(BGR/회색, 축척 s px/m) → 모델 출력 {ppm, pw(벽 확률), pd(문 확률), lab, v(벡터)}.
-    FIREBIM_MODEL_CACHE 폴더가 있으면 (영상·축척·모델) 지문으로 캐시.
+    FIRE3DBEAM_MODEL_CACHE 폴더가 있으면 (영상·축척·모델) 지문으로 캐시.
     roi=[x0,y0,x1,y1](원본 px): 그 안만 모델을 돌리고 밖은 배경(실제 도면 경로 — 글자층 치수로 찾은 건물·치수 범위, 2026-10-03 2차)"""
-    from firebim.str_seg import WORK_PPM_1_100, MODEL, vectorize, model_vec_param
+    from fire3dbeam.str_seg import WORK_PPM_1_100, MODEL, vectorize, model_vec_param
     if roi is not None:
         g0 = _gray(img); H, W = g0.shape
         x0, y0, x1, y1 = [int(round(v)) for v in roi]
@@ -78,7 +78,7 @@ def model_plan(img, s, tile=None, even=False, skip_blank=False, roi=None):
         return dict(ppm=WORK_PPM_1_100, pw=pw, pd=pd, lab=lab, v=vectorize(lab, WORK_PPM_1_100, P=model_vec_param(MODEL)), roi=[x0, y0, x1, y1])
     g = _gray(img)
     VP = model_vec_param(MODEL)                          # 모델별 벡터화 조정값(모델 .json "vec_param")
-    cache = os.environ.get('FIREBIM_MODEL_CACHE')
+    cache = os.environ.get('FIRE3DBEAM_MODEL_CACHE')
     key = None
     if cache:
         h = hashlib.sha1(g.tobytes()); h.update((f'{g.shape}|{s:.5f}|{os.path.getmtime(MODEL):.0f}' + (f'|t{tile}' if tile else '') + ('|even' if even else '') + ('|sb' if skip_blank else '')).encode())

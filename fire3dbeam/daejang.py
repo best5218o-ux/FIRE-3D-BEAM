@@ -11,8 +11,8 @@
   mainPurpsCdNm(주용도) ↔ ② 주용도 / rideUseElvtCnt+emgenUseElvtCnt ↔ ⑦ 승강기 수 ↔ 도면 승강기
   useAprDay(사용승인일)·heit(높이)는 표시·층고 추정에 사용."""
 import json, re
-from firebim.sop import CFG
-from firebim.card import level_of
+from fire3dbeam.sop import CFG
+from fire3dbeam.card import level_of
 
 
 def _items(x):

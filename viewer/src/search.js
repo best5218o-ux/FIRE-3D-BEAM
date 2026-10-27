@@ -1,4 +1,4 @@
-// 인명검색 우선순위 — 화점 입력 후 층별 실 순서 + 근거 (firebim/search.py 의 실 용도 범주 + firebim/sop.py SEARCH 기준값 = D.sop_search)
+// 인명검색 우선순위 — 화점 입력 후 층별 실 순서 + 근거 (fire3dbeam/search.py 의 실 용도 범주 + fire3dbeam/sop.py SEARCH 기준값 = D.sop_search)
 // 정렬 = 사전식 키 [층 순위, 대피 곤란 분류 순위, 용도·시간대 등급, 공격계단(위층: 공격계단 또는 그 층 계단)에서 보행거리, 실 번호]
 // 결정적: 같은 입력(화점·공격계단·대피로 분류·모드) → 같은 순서. 가중치는 모두 임시값(기관 SOP 로 설정).
 import * as THREE from 'three';

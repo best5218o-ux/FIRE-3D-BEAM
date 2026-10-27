@@ -70,7 +70,7 @@
    "계단실": 0.7
   }
  },
- "post_note": "기록용 — 실제 적용값은 firebim/spa_seg.PARAM (이 json 에 \"param\" 이 있으면 그 위에 덮음)",
+ "post_note": "기록용 — 실제 적용값은 fire3dbeam/spa_seg.PARAM (이 json 에 \"param\" 이 있으면 그 위에 덮음)",
  "created": "2026-10-02 07:20",
  "param": {
   "min_score": {

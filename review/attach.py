@@ -19,7 +19,7 @@ def _nfc(s): return unicodedata.normalize('NFC', s or '')
 def is_card_pdf(path):
     """정보카드(표준양식 또는 기존 근사 배치)인가: 양식 칸 이름이 글자층에 있음"""
     import pymupdf
-    from firebim.card import is_std
+    from fire3dbeam.card import is_std
     try:
         doc = pymupdf.open(path)
         t = '\n'.join(doc[k].get_text() for k in range(min(3, doc.page_count)))
@@ -27,10 +27,10 @@ def is_card_pdf(path):
         return False
     ns = re.sub(r'\s+', '', t)
     if is_std(t) or ('정보카드' in ns and ('층별' in ns or '소방시설' in ns)) or ('관리번호' in ns and '주용도' in ns): return True
-    # 스캔본(글자층 없는 그림 쪽): 첫 쪽을 가볍게 OCR — 제목 '소방활동 정보카드'·'건물개황' 또는 양식 칸 이름(firebim/card_ocr.py)
+    # 스캔본(글자층 없는 그림 쪽): 첫 쪽을 가볍게 OCR — 제목 '소방활동 정보카드'·'건물개황' 또는 양식 칸 이름(fire3dbeam/card_ocr.py)
     try:
-        from firebim import card_ocr
-        if os.environ.get('FIREBIM_OCR', '1') != '0' and card_ocr.is_image_page(doc[0]): return bool(card_ocr.quick_is_card(doc[0]))
+        from fire3dbeam import card_ocr
+        if os.environ.get('FIRE3DBEAM_OCR', '1') != '0' and card_ocr.is_image_page(doc[0]): return bool(card_ocr.quick_is_card(doc[0]))
     except Exception:
         return False
     return False
@@ -52,7 +52,7 @@ TOK = re.compile(r'(지하\s*(\d+)\s*층?)|((?<![A-Za-z])[Bb]\s*(\d+)\s*(?:F|층
 
 def floors_from_text(t):
     """글자 → 층 id 목록(['1F'], ['B1'], ['2F',…,'9F'], ['RF']). 못 찾으면 []"""
-    from firebim.card import expand_floors
+    from fire3dbeam.card import expand_floors
     t = _nfc(t)
     toks = []
     for m in TOK.finditer(t):
@@ -72,7 +72,7 @@ def floors_from_text(t):
 
 def ko_caption(fids):
     """층 id → 캡션 글자('지상1층', '지상2층~지상9층', '지하1층', '옥탑1층')"""
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     def one(f):
         if f.startswith('B'): return f'지하{f[1:]}층'
         if f.endswith('F') and f[:-1].isdigit(): return f'지상{f[:-1]}층'
@@ -102,17 +102,17 @@ def _page_image(page):
 def crop_sheet(img):
     """CAD 도면 시트(도곽 테두리 + 표제란)면 가장 큰 도면 영역만 잘라냄 → (영상, 상자|None).
     표제란 로고(색)·도곽선이 소방 기호·외벽으로 잡히고 외곽 면적 축척이 시트 전체로 커지는 것을 막는다(2026-10-03 공개 도면 시험).
-    시트 판정 = 가장자리 8% 띠 안 긴 도곽선이 3면 이상(firebim/realplan.frame_lines). 영역 = realplan.sheet_layout 가장 큰 영역(시트의 4~85%).
-    끄기: FIREBIM_SHEET_CROP=0"""
+    시트 판정 = 가장자리 8% 띠 안 긴 도곽선이 3면 이상(fire3dbeam/realplan.frame_lines). 영역 = realplan.sheet_layout 가장 큰 영역(시트의 4~85%).
+    끄기: FIRE3DBEAM_SHEET_CROP=0"""
     import cv2, numpy as np
-    if os.environ.get('FIREBIM_SHEET_CROP', '1') == '0': return img, None
-    from firebim import sheetcrop as SCR
-    if SCR.ENABLED:                                     # 2차(2026-10-03): 도곽·표제란 띠·범례 표 찾아 빼기 — firebim/sheetcrop.py
+    if os.environ.get('FIRE3DBEAM_SHEET_CROP', '1') == '0': return img, None
+    from fire3dbeam import sheetcrop as SCR
+    if SCR.ENABLED:                                     # 2차(2026-10-03): 도곽·표제란 띠·범례 표 찾아 빼기 — fire3dbeam/sheetcrop.py
         A = SCR.analyze(img)
         if A is None: return img, None
         im, bx, _ = SCR.crop(img, A)
         return im, bx
-    from firebim import realplan as RP
+    from fire3dbeam import realplan as RP
     g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
     H, W = g.shape
     f = max(1, int(round(max(H, W) / 1240)))           # sheet_layout 조정 해상도(A3 시트 ≈ 75 dpi, 긴 변 ≈ 1240 px)
@@ -142,11 +142,11 @@ def _read_image(path):
 
 
 def _sheet_scale(pg, img):
-    """벡터 PDF 쪽 글자층의 도면 축척(표제란 'SCALE 1/150(A3)' 등) → 캡션 꼬리 '[도면축척 … ppm=…]' | None (firebim/realcard.py 가 축척 후보로 씀).
-    그림 쪽(스캔본·글자층 없음)은 None. 끄기 FIREBIM_SHEET_SCALE=0"""
-    if os.environ.get('FIREBIM_SHEET_SCALE', '1') == '0': return None
+    """벡터 PDF 쪽 글자층의 도면 축척(표제란 'SCALE 1/150(A3)' 등) → 캡션 꼬리 '[도면축척 … ppm=…]' | None (fire3dbeam/realcard.py 가 축척 후보로 씀).
+    그림 쪽(스캔본·글자층 없음)은 None. 끄기 FIRE3DBEAM_SHEET_SCALE=0"""
+    if os.environ.get('FIRE3DBEAM_SHEET_SCALE', '1') == '0': return None
     try:
-        from firebim import realcard as RC
+        from fire3dbeam import realcard as RC
         if len(pg.get_text('words')) < 5: return None
         r = RC.sheet_scale_pdf_page(pg, img.shape[1])
         return r[1] if r else None
@@ -155,9 +155,9 @@ def _sheet_scale(pg, img):
 
 
 def _page_text(pg, img):
-    """벡터 쪽 글자층 → 그림(img) 좌표 글자 줄 | None (firebim/pdftext.py — realcard 가 OCR 대신 씀)"""
+    """벡터 쪽 글자층 → 그림(img) 좌표 글자 줄 | None (fire3dbeam/pdftext.py — realcard 가 OCR 대신 씀)"""
     try:
-        from firebim import pdftext as PT
+        from fire3dbeam import pdftext as PT
         if not PT.ENABLED or len(pg.get_text('words')) < PT.MIN_LINES: return None
         return PT.page_lines(pg, img.shape[1] / pg.rect.width, None, (img.shape[1], img.shape[0]))
     except Exception:
@@ -185,11 +185,11 @@ def caption_lines(pg):
 
 def _split_page(pg, log, name):
     """한 쪽에 서로 다른 층 평면도 캡션이 2개 이상 → [(kind, floors, img, 설명, 축척 꼬리)] | None"""
-    if os.environ.get('FIREBIM_SHEET_SPLIT', '1') == '0': return None
+    if os.environ.get('FIRE3DBEAM_SHEET_SPLIT', '1') == '0': return None
     caps = caption_lines(pg)
     if len({tuple(f) for f, _ in caps}) < 2: return None
     try:
-        from firebim import sheetcrop as SCR
+        from fire3dbeam import sheetcrop as SCR
         im = _page_image(pg)
         z = im.shape[1] / pg.rect.width
         parts = SCR.split_regions(im, [(f, [v * z for v in b]) for f, b in caps])
@@ -198,7 +198,7 @@ def _split_page(pg, log, name):
     if not parts: return None
     sc = _sheet_scale(pg, im)
     log(f'  · {name} p{pg.number + 1}: 한 쪽에 평면도 {len(parts)}개 → 층별로 나눔(' + ', '.join(ko_caption(f) for f, _, _ in parts) + ')')
-    from firebim import pdftext as PT
+    from fire3dbeam import pdftext as PT
     TL = _page_text(pg, im)
     return [('plan', f, img, f'{name} p{pg.number + 1} 영역{k + 1} {bx}', sc, PT.crop_lines(TL, bx)) for k, (f, img, bx) in enumerate(parts)]
 
@@ -218,7 +218,7 @@ def load_extra(path, kind, log=print):
                 for ln in lines:
                     fl = floors_from_text(ln)
                     if fl: break
-            if kind == 'plan' and not fl_name:                 # 한 쪽에 평면도 여럿(캡션 '1층 평면도'·'2층 평면도') → 층별로 나눔(firebim/sheetcrop.split_regions)
+            if kind == 'plan' and not fl_name:                 # 한 쪽에 평면도 여럿(캡션 '1층 평면도'·'2층 평면도') → 층별로 나눔(fire3dbeam/sheetcrop.split_regions)
                 parts = _split_page(pg, log, name)
                 if parts:
                     out += parts; continue
@@ -238,7 +238,7 @@ def combine(card_pdf, extras, out_pdf, log=print):
     """extras: 파일 경로 목록. 붙인 것이 없으면 None(원본 그대로 쓰면 됨), 있으면 out_pdf 경로.
     반환 (경로|None, 붙인 항목 설명 목록)"""
     import cv2, pymupdf
-    from firebim.card import parse_card, extract_plans, extract_figures
+    from fire3dbeam.card import parse_card, extract_plans, extract_figures
     info, doc = parse_card(card_pdf)
     have = {f for p in extract_plans(doc) for f in p.get('floors') or []}
     has_sitemap = False
@@ -247,9 +247,9 @@ def combine(card_pdf, extras, out_pdf, log=print):
     except Exception:
         pass
     if info.get('양식') == 'std' and len(info.get('동목록') or []) > 1:
-        log('  ! 여러 동 정보카드: 붙이는 도면은 마지막 동의 ⑪ 에 들어갑니다(동 선택 FIREBIM_DONG 확인)')
+        log('  ! 여러 동 정보카드: 붙이는 도면은 마지막 동의 ⑪ 에 들어갑니다(동 선택 FIRE3DBEAM_DONG 확인)')
     add, notes, n = [], [], len(extract_plans(doc))
-    texts = {}                                           # 캡션 → 그 평면도 그림 좌표 글자 줄(벡터 도면 글자층, firebim/pdftext.py)
+    texts = {}                                           # 캡션 → 그 평면도 그림 좌표 글자 줄(벡터 도면 글자층, fire3dbeam/pdftext.py)
     for p in extras:
         kind = classify(p)
         if kind not in ('plan', 'sitemap'): log(f'  건너뜀(도면 파일 아님): {p}'); continue
@@ -270,16 +270,16 @@ def combine(card_pdf, extras, out_pdf, log=print):
             except Exception as e:
                 bx = None; log(f'  ! {desc}: 도면 시트 영역 찾기 실패({e!r}) → 쪽 전체 사용')
             if bx: desc += f' (도곽·표제란 제외 영역 {bx[2] - bx[0]}×{bx[3] - bx[1]}px)'
-            from firebim import pdftext as PT
+            from fire3dbeam import pdftext as PT
             TL = PT.crop_lines(TL, bx)
-            if sc is None and bx and os.environ.get('FIREBIM_SHEET_SCALE', '1') != '0':      # 그림 도면 시트(글자층 없음): 표제란 OCR — 축척에 용지(A1·A3)가 적혀 있을 때만
+            if sc is None and bx and os.environ.get('FIRE3DBEAM_SHEET_SCALE', '1') != '0':      # 그림 도면 시트(글자층 없음): 표제란 OCR — 축척에 용지(A1·A3)가 적혀 있을 때만
                 try:
-                    from firebim import realcard as RC
+                    from fire3dbeam import realcard as RC
                     r = RC.sheet_scale_ocr(full); sc = r[1] if r else None
                 except Exception:
                     sc = None
             have |= set(fl); n += 1
-            cap = f'{n}. 평면도({ko_caption(fl)})' + (f' {sc}' if sc else '')      # 축척 꼬리 '[도면축척 … ppm=…]' → firebim/realcard.py 축척 후보(sheet)
+            cap = f'{n}. 평면도({ko_caption(fl)})' + (f' {sc}' if sc else '')      # 축척 꼬리 '[도면축척 … ppm=…]' → fire3dbeam/realcard.py 축척 후보(sheet)
             add.append((cap, img)); notes.append(f'{cap} ← {desc}' + (f' · 글자층 {len(TL)}줄' if TL else ''))
             if TL: texts[cap] = dict(w=int(img.shape[1]), h=int(img.shape[0]), lines=TL)
     if not add: return None, notes
@@ -292,7 +292,7 @@ def combine(card_pdf, extras, out_pdf, log=print):
         ok, png = cv2.imencode('.png', img)                                     # 무손실(도면 선·글자 보존)
         pg.insert_image(pymupdf.Rect(margin, 70, margin + iw, 70 + ih), stream=png.tobytes())
     if texts:
-        from firebim import pdftext as PT
+        from fire3dbeam import pdftext as PT
         PT.embed(doc, texts)
     doc.save(out_pdf, garbage=3, deflate=True)
     for s in notes: log('  + ' + s)

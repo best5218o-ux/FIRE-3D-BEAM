@@ -117,7 +117,7 @@ def _real_feats(p):
     return an, gv, gh, bub
 
 
-NAMED_MEDIAN = os.environ.get('FIREBIM_ALIGN_NAMED', '1') != '0'
+NAMED_MEDIAN = os.environ.get('FIRE3DBEAM_ALIGN_NAMED', '1') != '0'
 
 
 def align_real(plans, tol_a=1.0, tol_g=0.3):

@@ -155,7 +155,7 @@ export function initPanels(ctx) {
       ['대원 이동', '도착 시각(정보카드 관할 거리 ÷ 주행 속도) 뒤 진입로를 보행 속도·계단 층당 시간으로 따라 이동, 호스 전개·공기호흡기 잔압·귀환 한계 표시']];
     $('howBody').innerHTML = steps.map(([t, d], i) => `<div class="step"><b>${i + 1}</b><div><div class="it">${t}</div><div class="id">${esc(d)}</div></div></div>`).join('');
     $('actBox').innerHTML = ACT_KO.filter(([k]) => ACT[k] != null).map(([k, t, u]) => `<div class="kv"><span>${t}</span><b>${ACT[k]}${u}</b></div>`).join('') +
-      '<div class="note">기관 SOP 로 바꿀 값입니다(firebim/sop.py). 계산 결과는 모두 이 가정값 기준.</div>' +
+      '<div class="note">기관 SOP 로 바꿀 값입니다(fire3dbeam/sop.py). 계산 결과는 모두 이 가정값 기준.</div>' +
       (SIMP ? '<h4>화재 확산 가정 · 대원 이동 기준값 (예시·임시값 — sop.py SIM)</h4>' + [['smoke_max_m3s', '화원 연기 발생(최대)', '㎥/s'], ['grow_s', '성장 시간', '초'], ['untenable', '곤란 연기 지수', ''], ['c_door', '문 전도도', '㎥/s'], ['c_wall', '문 미검출 경계', '㎥/s'],
         ['c_stair_door', '계단실 문', '㎥/s'], ['c_stair_door_sp', '특별피난계단 문', '㎥/s'], ['c_stack_up', '계단 위로(굴뚝)', '㎥/s'], ['c_stack_dn', '계단 아래로', '㎥/s'], ['spread_door_s', '불 번짐(문)', '초'], ['spread_wall_s', '불 번짐(벽)', '초'],
         ['dispatch_s', '출동 준비', '초'], ['drive_kmh', '주행 속도', 'km/h'], ['setup_s', '현장 전개', '초'], ['search_dwell_s', '실 검색 시간', '초']].filter(([k]) => SIMP[k] != null).map(([k, t, u]) => `<div class="kv"><span>${t}</span><b>${SIMP[k]}${u}</b></div>`).join('') : '');

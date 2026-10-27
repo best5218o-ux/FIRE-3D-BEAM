@@ -13,7 +13,7 @@ import numpy as np, cv2
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evalr import str_eval as E
-from firebim import str_seg as SS
+from fire3dbeam import str_seg as SS
 
 CACHE = './cache/strm/vec_cache'
 

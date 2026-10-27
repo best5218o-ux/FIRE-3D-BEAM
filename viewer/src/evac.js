@@ -1,4 +1,4 @@
-// 대피로(초록) · 진입로(빨강) — firebim/evac.py 결과(D.evac) 표시 + 화점 지정 시 재계산(화점 구역·공격계단 회피)
+// 대피로(초록) · 진입로(빨강) — fire3dbeam/evac.py 결과(D.evac) 표시 + 화점 지정 시 재계산(화점 구역·공격계단 회피)
 // main.js 에서 initEvac(ctx) 로 연결. 경로 계산은 main.js 의 0.25 m 격자 Dijkstra(gridFor/dijkstra/pathTo)를 그대로 씀.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';

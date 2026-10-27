@@ -7,7 +7,7 @@ import numpy as np, cv2
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('cache'); ap.add_argument('--model', default=None); a = ap.parse_args()
-    from firebim.str_seg import StrSeg, WORK_PPM_1_100
+    from fire3dbeam.str_seg import StrSeg, WORK_PPM_1_100
     seg = StrSeg(a.model) if a.model else StrSeg()
     I = np.zeros(4); U = np.zeros(4); n = 0
     for lp in sorted(glob.glob(os.path.join(a.cache, 'SYN_*_l.png'))):

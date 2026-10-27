@@ -7,7 +7,7 @@
   total_check          최외곽 전체치수(가로·세로) ↔ 외곽 범위(mm) 상대오차 = 자기지도 정확도
 
 좌표: F = 원본(300dpi) px, 내부 해석은 H = 1/2(150dpi, 최소값 풀링 → 가는 선 보존), 배치는 Q = 1/4.
-사용: python -m firebim.realplan sheet.png out_dir [--rules]   (기본 = 분할 모델 벽, --rules = 규칙 벽)
+사용: python -m fire3dbeam.realplan sheet.png out_dir [--rules]   (기본 = 분할 모델 벽, --rules = 규칙 벽)
 """
 import re, os, sys, json, time, subprocess, tempfile
 import numpy as np, cv2
@@ -628,7 +628,7 @@ def region_prep(gF, box_q, frame_q=None, want_dims=True):
 
 def analyze_region(gF, box_q, frame_q=None, want_dims=True, model_lab=None, pre=None):
     """gF: 원본 시트(회색조), box_q: 1/4 좌표 영역, frame_q: 1/4 도곽선 마스크. 반환 dict(결과), 그리기용 자료
-    model_lab: (선택) 시트 전체 1/2 해상도 분할 라벨(0 배경·1 벽·2 창·3 문, firebim.str_seg) — 있으면 규칙 벽 추출 대신 사용
+    model_lab: (선택) 시트 전체 1/2 해상도 분할 라벨(0 배경·1 벽·2 창·3 문, fire3dbeam.str_seg) — 있으면 규칙 벽 추출 대신 사용
     pre: (선택) region_prep 결과 + 합의(s, conf, dims, scale_src) — 없으면 여기서 구함"""
     if pre is None:
         pre = region_prep(gF, box_q, frame_q, want_dims)
@@ -686,7 +686,7 @@ M_DIMCLIP = os.environ.get('REALPLAN_M_DIMCLIP', 'local')    # 모델 경로 바
 
 def _analyze_region_model(gF, hF, h, ink, x0, y0, dims, lines_all, s, conf, s_h, style, f, model_lab):
     """analyze_region 의 모델 경로: 벽 = 모델 벽, 외곽 = 벽 ∪ 창 ∪ 문(개구부가 외벽을 닫음). 치수·축척·검사는 규칙 경로와 같음"""
-    from firebim import str_seg as SS
+    from fire3dbeam import str_seg as SS
     H2, W2 = h.shape
     ml = np.zeros((H2, W2), np.uint8)
     sub = model_lab[y0 // 2:y0 // 2 + H2, x0 // 2:x0 // 2 + W2]
@@ -740,11 +740,11 @@ _LAST_ML = None
 
 
 def model_labels(gF, threads=None, src=None):
-    """시트 전체 → 1/2 해상도(H) 분할 라벨 (firebim.str_seg ONNX, 원본 300dpi 가정).
+    """시트 전체 → 1/2 해상도(H) 분할 라벨 (fire3dbeam.str_seg ONNX, 원본 300dpi 가정).
     src: (선택) dict(img=다른 해상도 원본 영상, dpi=그 dpi) — 축소본(예: 124dpi)을 되돌려 키운 gF 대신 원래 축소본을 모델에 넣음
          또는 dict(lab=미리 구한 1/2 해상도 라벨)"""
     global _SEG
-    from firebim import str_seg as SS
+    from fire3dbeam import str_seg as SS
     H2, W2 = gF.shape[0] // 2, gF.shape[1] // 2
     if src is not None and src.get('lab') is not None:
         return cv2.resize(src['lab'], (W2, H2), interpolation=cv2.INTER_NEAREST) if src['lab'].shape != (H2, W2) else src['lab']
@@ -826,7 +826,7 @@ DOOR_PRIOR = os.environ.get('REALPLAN_DOOR_PRIOR', '1') != '0'
 
 def door_scale(ml, pre):
     """모델 문 개체 폭 중앙값 → px/mm(원본 F) 추정 (문 3개 이상). ml: 시트 1/2 해상도 라벨"""
-    from firebim import str_seg as SS
+    from fire3dbeam import str_seg as SS
     H2, W2 = pre['h'].shape
     sub = ml[pre['y0'] // 2:pre['y0'] // 2 + H2, pre['x0'] // 2:pre['x0'] // 2 + W2]
     L = SS.filter_instances(SS.instances((sub == 3).astype(np.uint8), 12), 120, 24, 0.12)
@@ -872,7 +872,7 @@ def sheet_scale(pres, tol=0.03):
 
 def model_available():
     """실제 도면 기본 경로 = 분할 모델(models/str_seg.onnx + onnxruntime 이 있을 때). 없으면 규칙 경로"""
-    from firebim import str_seg as SS
+    from fire3dbeam import str_seg as SS
     if not os.path.exists(SS.MODEL): return False
     try:
         import onnxruntime  # noqa: F401
@@ -882,7 +882,7 @@ def model_available():
 
 
 def process_sheet(path, want_dims=True, want_caption=True, model=None):
-    """model=None(기본): 모델 파일·onnxruntime 있으면 벽·창·문을 분할 모델(firebim/str_seg.py)로, False = 규칙 벽.
+    """model=None(기본): 모델 파일·onnxruntime 있으면 벽·창·문을 분할 모델(fire3dbeam/str_seg.py)로, False = 규칙 벽.
     배치·치수·축척·외곽 검사는 같음"""
     gF = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     if gF is None: raise IOError(path)

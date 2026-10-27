@@ -5,7 +5,7 @@
 //  · s ≥ 1 이면 넘친 양을 이웃으로 밀어냄. 불(화염)은 같은 층 이웃 실로 문 300초·문 미검출 경계 720초 뒤 번짐(가정).
 //  · 진입·대피 곤란(untenable) = s ≥ 0.5 또는 불 붙은 지 30초.  실마다 '곤란 도달 시각(TTU)'으로 색칠.
 //  · 시간대별 대피로 재평가: 곤란해진 실·계단을 막고, 실 연결망에서 피난계단(공격계단 제외 — 없으면 포함)·옥외 출구까지 닿는지 다시 찾음.
-// 값은 firebim/sop.py SIM(→ D.sop_sim)에서 바꿈. 실제 연기 거동(CFAST·FDS 등 공학 모델)과 다르며 현장 판단을 대신하지 않음.
+// 값은 fire3dbeam/sop.py SIM(→ D.sop_sim)에서 바꿈. 실제 연기 거동(CFAST·FDS 등 공학 모델)과 다르며 현장 판단을 대신하지 않음.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { flameTexture } from './hud.js';

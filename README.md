@@ -7,7 +7,7 @@
 인터넷 없이 동작하고(내부망 설치판 포함), 결과 HTML 은 설치 없이 크롬·엣지에서 열립니다.
 
 > ⚠ **참고용 도구입니다.** 도면과 현장은 다를 수 있습니다. 화면의 「확인 필요」 항목은 현장에서 확인하고,
-> 호스 본수·공기호흡기 귀환 한계·인명검색 순서 같은 계산값은 **가정 기반 참고값**입니다(`firebim/sop.py` 의 값은 모두 임시값 — 기관 SOP 로 바꿔 쓰세요).
+> 호스 본수·공기호흡기 귀환 한계·인명검색 순서 같은 계산값은 **가정 기반 참고값**입니다(`fire3dbeam/sop.py` 의 값은 모두 임시값 — 기관 SOP 로 바꿔 쓰세요).
 > 투입·철수 판단은 현장지휘관이 합니다.
 
 ---
@@ -16,12 +16,12 @@
 
 | 단계 | 내용 | 주요 파일 |
 |---|---|---|
-| 정보카드 해석 | 표준양식(①~⑪) 자동 판별, 건물개황·층별 용도·소방시설·위험물 항목 읽기, 스캔본 OCR, **관계인 성명·연락처 자동 가림** | `firebim/card.py`, `card_ocr.py` |
-| 평면도 인식 | 벽·문·창·계단·승강기·실, 범례 기호(비상구·소화전·수신기 등), 치수로 축척 계산 | `firebim/geom.py`, `vision.py`, `realcard.py`, `realplan.py`, `str_seg.py`, `spa_seg.py` |
-| 층간 정합 | 계단·승강기·벽 겹침으로 층을 맞춰 쌓기 | `firebim/align.py`, `pipeline.py` |
-| 교차검증 | 정보카드 ↔ 도면 ↔ 건축물대장(건축HUB 항목명) 3자 대조, 다르면 「확인 필요」 | `firebim/daejang.py`, `xcheck.py` |
-| 소방 기능 | 수신기 경계구역 추정(NFTC 203), 부지·소방차 접근·사다리차 부서 후보, 진압작전도 인식, 진입로·피난로, 인명검색 우선순위 | `firebim/zones.py`, `site.py`, `sitemap.py`, `evac.py`, `search.py` |
-| 출력 | 3D 지휘화면(three.js, HTML 1개) + IFC4(IfcSpace·IfcZone·소방시설 형식) | `firebim/export.py`, `viewer/` |
+| 정보카드 해석 | 표준양식(①~⑪) 자동 판별, 건물개황·층별 용도·소방시설·위험물 항목 읽기, 스캔본 OCR, **관계인 성명·연락처 자동 가림** | `fire3dbeam/card.py`, `card_ocr.py` |
+| 평면도 인식 | 벽·문·창·계단·승강기·실, 범례 기호(비상구·소화전·수신기 등), 치수로 축척 계산 | `fire3dbeam/geom.py`, `vision.py`, `realcard.py`, `realplan.py`, `str_seg.py`, `spa_seg.py` |
+| 층간 정합 | 계단·승강기·벽 겹침으로 층을 맞춰 쌓기 | `fire3dbeam/align.py`, `pipeline.py` |
+| 교차검증 | 정보카드 ↔ 도면 ↔ 건축물대장(건축HUB 항목명) 3자 대조, 다르면 「확인 필요」 | `fire3dbeam/daejang.py`, `xcheck.py` |
+| 소방 기능 | 수신기 경계구역 추정(NFTC 203), 부지·소방차 접근·사다리차 부서 후보, 진압작전도 인식, 진입로·피난로, 인명검색 우선순위 | `fire3dbeam/zones.py`, `site.py`, `sitemap.py`, `evac.py`, `search.py` |
+| 출력 | 3D 지휘화면(three.js, HTML 1개) + IFC4(IfcSpace·IfcZone·소방시설 형식) | `fire3dbeam/export.py`, `viewer/` |
 | 검수 | 의심도 순 검수 화면 → 고친 내용을 3D·IFC 에 반영 + 학습 라벨로 저장 | `review/` |
 | 내부망 설치판 | Windows·인터넷 없음·관리자 권한 없음용 설치판 빌드 | `offline/` |
 
@@ -84,7 +84,7 @@ python -m review.apply out/<건물>.json 검수결과.json # 검수 반영 → 3
 ## 6. 폴더 구성
 
 ```
-firebim/   변환 엔진          viewer/    3D 지휘화면(three.js)   review/  검수 화면
+fire3dbeam/   변환 엔진          viewer/    3D 지휘화면(three.js)   review/  검수 화면
 synth/     가상 건물 생성기    evalr/     자동 채점               strseg/  모델 학습·내보내기
 models/    ONNX 모델           offline/   내부망 설치판           tools/aihub/  AI허브 데이터 준비
 colab/     GPU 학습 노트북     realplan/  실제 도면 전처리 설명   templates/    정보카드 빈 양식

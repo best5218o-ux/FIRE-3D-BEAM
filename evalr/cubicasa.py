@@ -6,8 +6,8 @@ import numpy as np, cv2
 import xml.etree.ElementTree as ET
 from shapely.geometry import Polygon, LineString, MultiLineString, Point
 from shapely.ops import unary_union
-from firebim.vision import masks, grid_lines
-from firebim import geom
+from fire3dbeam.vision import masks, grid_lines
+from fire3dbeam import geom
 
 NS = '{http://www.w3.org/2000/svg}'
 

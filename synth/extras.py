@@ -15,7 +15,7 @@ from shapely.ops import unary_union
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
-from firebim.sop import CFG
+from fire3dbeam.sop import CFG
 
 KO = lambda lv: (f'지하{-lv}층' if lv < 0 else f'지상{lv + 1}층')
 
@@ -146,7 +146,7 @@ def extend(d, pdf=False):
 
 
 def daejang_pdf(dj, out):
-    """건축물대장(갑) 출력물 모양의 가상 PDF — firebim.daejang.parse_pdf 시험용"""
+    """건축물대장(갑) 출력물 모양의 가상 PDF — fire3dbeam.daejang.parse_pdf 시험용"""
     import asyncio
     t = dj['brTitleInfo'][0]
     rows = ''.join(f"<tr><td>{'주' if i == 0 else '주'}1</td><td>{r['flrNoNm']}</td><td>{r['strct'] if 'strct' in r else '철근콘크리트구조'}</td>"

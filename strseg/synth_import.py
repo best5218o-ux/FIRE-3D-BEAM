@@ -2,16 +2,16 @@
 """가상 정보카드(정답 포함) → STR 학습 캐시(SYN_*): 정보카드 평면도 표현(회색 띠 벽·그리드선·소방기호)을 모델에 학습시킨다.
 
 사용: python -m strseg.synth_import [data 폴더=data] [--cache DIR]
-- card.pdf 에서 평면도 이미지를 꺼내(firebim.card.extract_plans) 정답 gt.json 의 벽(m, 두께 t)·문을 transforms 로 화소에 그림.
+- card.pdf 에서 평면도 이미지를 꺼내(fire3dbeam.card.extract_plans) 정답 gt.json 의 벽(m, 두께 t)·문을 transforms 로 화소에 그림.
 - 그리드선·기호·치수는 배경(0) → '그리드선=벽' 오검출을 줄이는 음성 예. 창은 가상 도면에 없음(배경).
-- 작업 해상도: 1/100 기준 1 m ≈ 29 px (firebim.str_seg.WORK_PPM_1_100).
+- 작업 해상도: 1/100 기준 1 m ≈ 29 px (fire3dbeam.str_seg.WORK_PPM_1_100).
 - 보류 평가는 다른 시드 세트(SYNTH_DATA=data_hold)로 따로 — 여기서는 data/ 만 학습에 쓴다.
 """
 import argparse, glob, json, os
 import numpy as np, cv2, pymupdf
 from strseg import data as D
-from firebim.card import extract_plans
-from firebim.str_seg import WORK_PPM_1_100
+from fire3dbeam.card import extract_plans
+from fire3dbeam.str_seg import WORK_PPM_1_100
 
 
 def rect_poly(x0, y0, x1, y1, t):

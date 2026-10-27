@@ -34,5 +34,5 @@
    "계단실": 0.7
   }
  },
- "post_note": "기록용 — 실제 적용값은 firebim/spa_seg.PARAM(detect(param=...)로 덮어쓰기). min_score=연결 성분 평균 확률 하한, devval 에서만 조정(2026-09-30)"
+ "post_note": "기록용 — 실제 적용값은 fire3dbeam/spa_seg.PARAM(detect(param=...)로 덮어쓰기). min_score=연결 성분 평균 확률 하한, devval 에서만 조정(2026-09-30)"
 }

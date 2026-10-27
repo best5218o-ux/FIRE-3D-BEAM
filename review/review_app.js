@@ -32,7 +32,7 @@ function xEffect(it, d) {
   return d === 'model' ? 'add' : 'none';
 }
 const VKO = { stairs: '계단', elevs: '승강기' };
-const LSKEY = 'firebim-review:' + D.building.id + ':' + D.building.result_sha;
+const LSKEY = 'fire3dbeam-review:' + D.building.id + ':' + D.building.result_sha;
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const now = () => new Date().toISOString().slice(0, 19);
 
@@ -570,7 +570,7 @@ $('file').onchange = (e) => {
 // ───────── 저장(교정 JSON) ─────────
 function buildCorrections() {
   const out = {
-    schema: D.schema, tool: 'firebim-review-html/1', created: S.created || now(), updated: now(),
+    schema: D.schema, tool: 'fire3dbeam-review-html/1', created: S.created || now(), updated: now(),
     building: D.building, source: D.source,
     summary: { items_total: D.items.length, items_done: D.items.filter((it) => itemState(it)).length, plans_total: D.plans.length, plans_done: D.plans.filter((p) => S.plans[p.i].status.done).length, auto_total: D.stats.n_auto,
       xcheck_total: D.items.filter((it) => XK[it.kind]).length, xcheck_done: D.items.filter((it) => XK[it.kind] && itemState(it)).length, vertical_added: S.vadd.length },

@@ -6,7 +6,7 @@
 승강기_비상,승강기_일반}, 관계인[{구분,성명,연락처}], 위험물[{구분,시설명,품명,수량}], 층별현황[{층,층_원문,용도,면적,소방시설_원문,기타}]}]
 + `gt['card_std_figs']` = [{동, 종류(위치도|사진|진압작전도|평면도), 캡션, floors}]
 
-모든 값은 가상(가상시 가상구, 가상소유자, 000-xxxx-xxxx). 관계인 성명·연락처는 개인정보 항목 → 엔진 기본값은 출력에서 제외(firebim/card.py redact).
+모든 값은 가상(가상시 가상구, 가상소유자, 000-xxxx-xxxx). 관계인 성명·연락처는 개인정보 항목 → 엔진 기본값은 출력에서 제외(fire3dbeam/card.py redact).
 variant: 'std'(LibreOffice 기본 글꼴) | 'hwp'(한글→PDF 흉내: 명조 글꼴·줄간격 160%·자간·'지상1층' 표기·㎡ 생략)"""
 import copy, io, os, random, re, shutil, subprocess, tempfile
 from PIL import Image, ImageDraw

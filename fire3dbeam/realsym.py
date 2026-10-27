@@ -49,7 +49,7 @@ VOCAB = [('침실', '침실'), ('안방', '침실'), ('방', '침실'), ('자녀
          ('보일러실', '기타'), ('세탁실', '기타'), ('수납', '기타'), ('연습실', '기타'), ('포치', '기타'), ('주차장', '기타'), ('작업실', '기타'),
          ('기계실', '기타'), ('전기실', '기타'), ('관리실', '기타'), ('다락', '기타'), ('서비스', '기타')]
 # 비주거(복지·업무·교육·의료) 실명(2026-10-03, 공개 실제 도면 시험 후속) — 범주는 기존 10개 안에서(로비→복도, 조리실→주방, 나머지 '기타').
-# 소방 용도 범주(인명검색 우선순위)는 실명 글자로 firebim/search.py NAME_VOCAB 이 정함(사무·교육·치료 → 주간 재실, 병실·요양실 → 취침, 기계·전기 → 설비)
+# 소방 용도 범주(인명검색 우선순위)는 실명 글자로 fire3dbeam/search.py NAME_VOCAB 이 정함(사무·교육·치료 → 주간 재실, 병실·요양실 → 취침, 기계·전기 → 설비)
 VOCAB_NONRES = [('로비', '복도'), ('조리실', '주방'), ('사무실', '기타'), ('회의실', '기타'), ('강당', '기타'), ('프로그램실', '기타'), ('상담실', '기타'),
                 ('교실', '기타'), ('강의실', '기타'), ('치료실', '기타'), ('물리치료실', '기타'), ('작업치료실', '기타'), ('재활실', '기타'), ('진료실', '기타'),
                 ('병실', '기타'), ('요양실', '기타'), ('간호사실', '기타'), ('숙직실', '기타'), ('휴게실', '기타'), ('대기실', '기타'), ('다목적실', '기타'),
@@ -760,7 +760,7 @@ FUSE_DUP_M = float(os.environ.get('REALSYM_FUSE_DUP_M', 2.0))   # 같은 실 중
 
 
 def spa_seg_ref_ppm():
-    from firebim import spa_seg
+    from fire3dbeam import spa_seg
     return spa_seg.REF_PPM
 
 
@@ -842,7 +842,7 @@ def fuse_model(out, seg, box=None, mode=None, conflict=None):
 
 
 def analyze(g, box=None, dets=('rooms', 'doors', 'stairs', 'elev'), ocr_up='auto', model=False, model_scale=None):
-    """ocr_up: 'auto' = 시트(g) 긴 변 ≤ 2600 px(저해상도 축소본, 실명 글자 높이 ≈ 8~11 px)이면 2배 확대 OCR. model: True/경로 → firebim/spa_seg ONNX 분할망 결과 합침
+    """ocr_up: 'auto' = 시트(g) 긴 변 ≤ 2600 px(저해상도 축소본, 실명 글자 높이 ≈ 8~11 px)이면 2배 확대 OCR. model: True/경로 → fire3dbeam/spa_seg ONNX 분할망 결과 합침
     (out['seg'] 에 모델 원 결과, rooms/stairs/elevators 는 합친 결과. 모델 파일 없으면 규칙만).
     model_scale: 모델 입력 배율(기본 1024/시트 긴 변 — 학습 조건: A3 시트 전체를 긴 변 1024 px 로). 시트가 아닌 잘린 평면 영상이면 직접 지정."""
     out = dict(box=box)
@@ -862,7 +862,7 @@ def analyze(g, box=None, dets=('rooms', 'doors', 'stairs', 'elev'), ocr_up='auto
     if 'elev' in dets:
         out['elevators'] = detect_elevators(g, box, words, out.get('px_per_m'))
     if model:
-        from firebim import spa_seg
+        from fire3dbeam import spa_seg
         path = model if isinstance(model, str) else spa_seg.MODEL
         if spa_seg.available(path):
             # 학습 축척 = 시트 전체 긴 변 1024 px. 평면 상자(box)만 넘겨도 축척은 시트 전체(g) 기준으로

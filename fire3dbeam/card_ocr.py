@@ -15,8 +15,8 @@ os.environ.setdefault('OMP_THREAD_LIMIT', '1')     # tesseract OpenMP 끔: 2코�
 import numpy as np
 import cv2
 
-LOG = os.environ.get('FIREBIM_OCR_LOG', '1') != '0'
-TESS = os.environ.get('FIREBIM_TESSERACT', 'tesseract')
+LOG = os.environ.get('FIRE3DBEAM_OCR_LOG', '1') != '0'
+TESS = os.environ.get('FIRE3DBEAM_TESSERACT', 'tesseract')
 _STDIN_OK = [None]
 _CACHE = {}                    # 쪽 해시 → 쪽 분석 결과(최근 64쪽)
 
@@ -237,7 +237,7 @@ def cell_grid(hm, vm, box, ppt):
 
 
 # ───────────────────────────── 칸·글줄 OCR(모자이크 1회 호출)
-OCR_PPT = float(os.environ.get('FIREBIM_OCR_PPT', '3.2'))     # 표 칸 OCR 입력 해상도(화소/pt ≈ 230 dpi)
+OCR_PPT = float(os.environ.get('FIRE3DBEAM_OCR_PPT', '3.2'))     # 표 칸 OCR 입력 해상도(화소/pt ≈ 230 dpi)
 LINE_PPT = 4.5                                                 # 표 밖 글줄(굵은 밑줄 캡션) OCR 해상도
 
 
@@ -406,7 +406,7 @@ FLOOR_PREFIX = ['지하', '지상', '옥탑']
 
 
 def fac_vocab():
-    from firebim.fac_catalog import CATALOG
+    from fire3dbeam.fac_catalog import CATALOG
     v = set()
     for c in CATALOG.values():
         for a in [c['name']] + c['aliases']: v.add(re.sub(r'\s+', '', a))
@@ -1127,7 +1127,7 @@ _NUMF = {'지하 층수': '지하층수', '지상 층수': '지상층수', '연�
 
 def field_confs(all_rows):
     """form_rows 의 행(칸 dict) 들 → [(동 번호, 필드, 신뢰도, 개인정보 여부)] 쪽 순서대로"""
-    from firebim.card import norm_floor
+    from fire3dbeam.card import norm_floor
     out, dong = [], -1
     for row in all_rows:
         cs = [c for c in row['cells'] if c is not None]
@@ -1296,11 +1296,11 @@ def figure_regions(P, y_min_pt=None):
     return out
 
 
-FIG_DROP = os.environ.get('FIREBIM_OCR_FIGDROP', '1') != '0'       # 캡션 없는 빈·낮은 그림 영역 버림(0 = 예전)
+FIG_DROP = os.environ.get('FIRE3DBEAM_OCR_FIGDROP', '1') != '0'       # 캡션 없는 빈·낮은 그림 영역 버림(0 = 예전)
 FIG_MIN_INK = 0.008            # 캡션 없는 영역의 최소 잉크 비율(정규화한 그림에서 회색 < 160) — dev 정상 그림 최소 0.013
 FIG_MIN_H_PT = 120             # 캡션 없는 영역의 최소 높이(pt) — dev 정상 그림 최소 217pt, 과검출 글줄 덩어리 45~92pt
-FIG_NORM = os.environ.get('FIREBIM_OCR_FIGNORM', '1') != '0'
-FIG_PPT = float(os.environ.get('FIREBIM_OCR_FIGPPT', '0') or 0)       # >0 이면 그림을 이 화소/pt 로 다시 표본화(0 = 스캔 해상도 그대로)
+FIG_NORM = os.environ.get('FIRE3DBEAM_OCR_FIGNORM', '1') != '0'
+FIG_PPT = float(os.environ.get('FIRE3DBEAM_OCR_FIGPPT', '0') or 0)       # >0 이면 그림을 이 화소/pt 로 다시 표본화(0 = 스캔 해상도 그대로)
 
 
 def white_balance(P):
@@ -1310,7 +1310,7 @@ def white_balance(P):
     bgm = P['g'] > 245
     if bgm.sum() < 1000: return img
     paper = np.median(img[bgm], axis=0).astype(np.float32)
-    if os.environ.get('FIREBIM_OCR_WBLO', '0') == '1':
+    if os.environ.get('FIRE3DBEAM_OCR_WBLO', '0') == '1':
         lo = np.percentile(img.reshape(-1, 3)[::7], 0.5, axis=0).astype(np.float32)
         lo = np.minimum(lo, paper - 60)
     else:
@@ -1319,8 +1319,8 @@ def white_balance(P):
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
-FIG_SHARP = os.environ.get('FIREBIM_OCR_FIGSHARP', '0') != '0'
-FIG_GAMMA = float(os.environ.get('FIREBIM_OCR_FIGGAMMA', '1.5') or 0)
+FIG_SHARP = os.environ.get('FIRE3DBEAM_OCR_FIGSHARP', '0') != '0'
+FIG_GAMMA = float(os.environ.get('FIRE3DBEAM_OCR_FIGGAMMA', '1.5') or 0)
 
 
 def clear_border_lines(c, ppt):
@@ -1378,7 +1378,7 @@ def line_tile(P, b):
 def fix_plan_captions(pages, all_rows):
     """평면도 캡션 층 보정 — ⑩ 층별현황(같은 문서 OCR)의 층 목록으로: ① 없는 층 번호에서 오독 자리 빼기('지상54'→지상5)
     ② 못 읽은 캡션이 앞뒤 캡션 사이 빠진 층 하나뿐이면 그 층(평면도는 층 순서로 실림)"""
-    from firebim.card import norm_floor, level_of, expand_floors
+    from fire3dbeam.card import norm_floor, level_of, expand_floors
     valid = set()
     for row in all_rows:
         for c in row['cells']:
@@ -1425,7 +1425,7 @@ def fix_plan_captions(pages, all_rows):
             else: l['kind'] = 'cap'
 
 
-QUICK_SIZE = os.environ.get('FIREBIM_QUICK_SIZE', '1') != '0'
+QUICK_SIZE = os.environ.get('FIRE3DBEAM_QUICK_SIZE', '1') != '0'
 SEC2_RE = re.compile(r'2\s*\.\s*동\s*별\s*위\s*치\s*도')
 
 

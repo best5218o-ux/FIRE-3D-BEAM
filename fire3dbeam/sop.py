@@ -5,7 +5,7 @@
 - SOP  : 기관 SOP 값으로 설정 필요 — 차량 제원·부서 원칙·호스 길이 등은 본부·서마다 다르다.
          아래 기본값은 시험용 가정값이며, 실제 운용 전 기관 SOP 값으로 바꿔야 한다.
 - TOL  : 교차검증 허용 오차(내부 판단 기준).
-사용: from firebim.sop import CFG  /  CFG 를 복사해 값만 바꿔 각 함수에 cfg= 로 넘길 수 있다.
+사용: from fire3dbeam.sop import CFG  /  CFG 를 복사해 값만 바꿔 각 함수에 cfg= 로 넘길 수 있다.
 """
 
 LAW = {

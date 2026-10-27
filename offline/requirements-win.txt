@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # 내부 PC(Windows x64, Python 3.11) 런타임 — 개발 PC에서 시험한 버전으로 고정. playwright·node·torch·LibreOffice 는 필요 없음.
 # build_bundle.sh 가 이 목록으로 win_amd64 휠을 wheelhouse/ 에 받고, install.bat 가 --no-index 로 설치한다.
-# 목록 근거 = 실행 코드(firebim/ review/ offline/launch.py build_viewer.py run_all.py evalr/{score,card_eval,evac_score,xcheck_eval}.py)의 import.
+# 목록 근거 = 실행 코드(fire3dbeam/ review/ offline/launch.py build_viewer.py run_all.py evalr/{score,card_eval,evac_score,xcheck_eval}.py)의 import.
 #   synth/(가상 생성: python-docx·playwright·LibreOffice), strseg/·evalr/*_train(학습: torch)은 내부 PC 에서 쓰지 않음.
-#   OCR 은 pytesseract 없이 tesseract.exe 를 직접 부름(firebim/vision·realsym·sitemap·realplan) → pytesseract 제외.
+#   OCR 은 pytesseract 없이 tesseract.exe 를 직접 부름(fire3dbeam/vision·realsym·sitemap·realplan) → pytesseract 제외.
 pymupdf==1.28.2
 opencv-python-headless==4.13.0.92
 numpy==2.4.4
@@ -12,7 +12,7 @@ pillow==12.2.0
 ifcopenshell==0.8.5
 # 분할 모델(models/str_seg.onnx 교차검증, spa_seg.onnx) 추론 — torch 불필요
 onnxruntime==1.25.0
-# 대피로·진입로 최단경로(firebim/evac.py: skimage.graph.MCP_Geometric) — 없으면 대피로 절이 통째로 빠짐
+# 대피로·진입로 최단경로(fire3dbeam/evac.py: skimage.graph.MCP_Geometric) — 없으면 대피로 절이 통째로 빠짐
 scikit-image==0.26.0
 # 간접 의존성(고정)
 scipy==1.17.1

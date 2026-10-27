@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # 내부 PC용 오프라인 설치판 만들기 — 인터넷 되는 PC(리눅스/WSL/맥)에서 실행.
-#   bash offline/build_bundle.sh            # → offline/build/FireBIM_offline/ + FireBIM_offline.zip + .zip.sha256
+#   bash offline/build_bundle.sh            # → offline/build/FIRE-3D-BEAM_offline/ + FIRE-3D-BEAM_offline.zip + .zip.sha256
 # 환경변수:
 #   PYFULL=3.11.9            Windows embeddable Python 버전(3.11.x 마지막 바이너리 배포판)
 #   TESS_VER=5.4.0.20240606  UB Mannheim Tesseract 빌드
 #   WITH_SYNTH=1             채점용 가상 정보카드(data/, 약 11MB) 포함 (0 이면 제외 — 자체시험 표본 samples/ 는 항상 포함)
 #   SAMPLE=data_std2/hall_1404  자체시험 표본(가상 표준양식 카드 + 진압작전도 + 대장·부지). 정답 gt.json 은 넣지 않음
 #   WITH_V3=0                예전 STR 모델(str_seg_v3.onnx, 비교·되돌리기용) 포함 — 기본 제외(기본 모델 = GPU 모델 str_seg.onnx)
-#   ZIP=1                    FireBIM_offline.zip 도 만들기
+#   ZIP=1                    FIRE-3D-BEAM_offline.zip 도 만들기
 #   LINUX_TEST=1             같은 고정 버전의 리눅스 휠로 '오프라인 설치 → 자체시험(변환·AI 교차검증·검수 반영)'을 이 PC에서 재현
 # 넣지 않는 것: synth/(가상 생성 — python-docx·LibreOffice·playwright), strseg/·학습 스크립트(torch), AI허브 자료·정답, data_hold/ out*/ 등
 #              개발 산출물, 실제 정보카드, selftest_review.py(playwright — 개발 PC 전용)
@@ -16,7 +16,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; APP="$(dirname "$HERE")"
 PYFULL="${PYFULL:-3.11.9}"; PYV="${PYFULL%.*}"; PYTAG="${PYV/./}"
 TESS_VER="${TESS_VER:-5.4.0.20240606}"
 WITH_SYNTH="${WITH_SYNTH:-1}"; ZIP="${ZIP:-1}"; LINUX_TEST="${LINUX_TEST:-0}"; WITH_V3="${WITH_V3:-0}"; SAMPLE="${SAMPLE:-data_std2/hall_1404}"
-BUILD="$HERE/build"; OUT="$BUILD/FireBIM_offline"; CACHE="$BUILD/cache"
+BUILD="$HERE/build"; OUT="$BUILD/FIRE-3D-BEAM_offline"; CACHE="$BUILD/cache"
 PY="${PYTHON:-python3}"; T="$HERE/bundle_tools.py"
 mkdir -p "$CACHE"; rm -rf "$OUT"; mkdir -p "$OUT"/{wheelhouse,installers/tessdata}
 fetch() { # url dest
@@ -26,7 +26,7 @@ fetch() { # url dest
 
 echo "■ 1) 3D 뷰어 번들(viewer/dist/app.js) — 내부 PC에는 node 없음"
 if [ -x "$APP/viewer/node_modules/.bin/esbuild" ]; then
-  (cd "$APP" && env -u FIREBIM_PREBUILT "$PY" -c "import build_viewer; build_viewer.bundle()")
+  (cd "$APP" && env -u FIRE3DBEAM_PREBUILT "$PY" -c "import build_viewer; build_viewer.bundle()")
 fi
 [ -s "$APP/viewer/dist/app.js" ] || { echo "viewer/dist/app.js 없음 (cd viewer && npm install 후 다시)"; exit 1; }
 
@@ -86,9 +86,9 @@ echo "■ 7) 크기"
 du -sh "$OUT/wheelhouse" "$OUT/python" "$OUT/app" "$OUT/app/models" "$OUT"/tesseract "$OUT/installers" 2>/dev/null || true
 du -sh "$OUT"
 if [ "$ZIP" = 1 ]; then
-  rm -f "$BUILD/FireBIM_offline.zip"
-  "$PY" "$T" zip "$OUT" "$BUILD/FireBIM_offline.zip"
-  ( cd "$BUILD" && sha256sum FireBIM_offline.zip > FireBIM_offline.zip.sha256 && cat FireBIM_offline.zip.sha256 )
+  rm -f "$BUILD/FIRE-3D-BEAM_offline.zip"
+  "$PY" "$T" zip "$OUT" "$BUILD/FIRE-3D-BEAM_offline.zip"
+  ( cd "$BUILD" && sha256sum FIRE-3D-BEAM_offline.zip > FIRE-3D-BEAM_offline.zip.sha256 && cat FIRE-3D-BEAM_offline.zip.sha256 )
 fi
 
 if [ "$LINUX_TEST" = 1 ]; then
@@ -101,6 +101,6 @@ if [ "$LINUX_TEST" = 1 ]; then
   "$BUILD/_venv/bin/python" "$PIPWHL/pip" install -q --no-index --find-links "$LW" pip          # install.bat 과 같은 부트스트랩
   "$BUILD/_venv/bin/python" -m pip install -q --no-index --find-links "$LW" -r "$BUILD/requirements-linux-test.txt"
   mkdir -p "$BUILD/_home"
-  FIREBIM_HOME="$BUILD/_home" FIREBIM_NO_OPEN=1 "$BUILD/_venv/bin/python" -X utf8 "$OUT/app/offline/launch.py" selftest
+  FIRE3DBEAM_HOME="$BUILD/_home" FIRE3DBEAM_NO_OPEN=1 "$BUILD/_venv/bin/python" -X utf8 "$OUT/app/offline/launch.py" selftest
 fi
 echo "완료: $OUT"

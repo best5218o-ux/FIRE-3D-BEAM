@@ -27,8 +27,8 @@ def floor_range(fids):
 
 def flag_text(f):
     k = f['kind']
-    from firebim.flagtext import TITLE, explain
-    if f.get('msg'):                       # 쉬운 말 문구(firebim/flagtext.py) — 기술 정보는 detail 로 따로
+    from fire3dbeam.flagtext import TITLE, explain
+    if f.get('msg'):                       # 쉬운 말 문구(fire3dbeam/flagtext.py) — 기술 정보는 detail 로 따로
         return TITLE.get(k, k), f['msg']
     try:                                   # JSON 에 msg 가 없는 결과(가상 카드 등)도 같은 쉬운 말로
         m_, _ = explain(f)
@@ -40,12 +40,12 @@ def flag_text(f):
     if k == 'stair_count': return '계단 수 불일치', f"정보카드 {f['card']}개소 / 도면에서 찾은 계단 {f['drawing']}개소"
     if k == 'align': return '층 위치 맞춤 신뢰도 낮음', f"{ko_floor(f.get('floor', ''))}: 기호 부족으로 그리드선만으로 위치를 맞춤"
     try:                                   # 기능 12·18·24 플래그: 3D 화면과 같은 문구 사용
-        from firebim.export import ext_issue
+        from fire3dbeam.export import ext_issue
         e = ext_issue(f)
         if e: return e['t'], e['d']
     except Exception:
         pass
-    from firebim.flagtext import TITLE
+    from fire3dbeam.flagtext import TITLE
     return TITLE.get(k, k), '자동 검사 결과 — 검수 화면에서 확인'
 
 
@@ -65,7 +65,7 @@ def walls_px(walls, T):
 
 
 def build_data(res, result_path, pdf, imgs, preload=None, prior=None):
-    from firebim.card import level_of
+    from fire3dbeam.card import level_of
     pf = plan_floors(res)
     card = res.get('card') or {}
     name = card.get('name') or stem_of(result_path)
@@ -148,7 +148,7 @@ def build_data(res, result_path, pdf, imgs, preload=None, prior=None):
         key = flag_key(f)
         _e = None
         try:
-            from firebim.export import ext_issue; _e = ext_issue(f)
+            from fire3dbeam.export import ext_issue; _e = ext_issue(f)
         except Exception: pass
         lv = _e['lv'] if _e and _e.get('lv') in ('high', 'mid') else ('high' if f['kind'] in ('stair_count', 'align') else 'mid')
         D['flags'].append(dict(key=key, kind=f['kind'], floor=f.get('floor'), plan=fplan.get(f.get('floor')), t=t, d=d, lv=lv, raw=f, **({'detail': f['detail']} if f.get('detail') else {})))
@@ -165,7 +165,7 @@ def build_data(res, result_path, pdf, imgs, preload=None, prior=None):
     return D
 
 
-XC_ITEM_P = 0.5             # 교차검증 불일치를 검수 항목으로 올리는 최소 의심도(firebim/xcheck.py CFG['item_p'] 와 같게)
+XC_ITEM_P = 0.5             # 교차검증 불일치를 검수 항목으로 올리는 최소 의심도(fire3dbeam/xcheck.py CFG['item_p'] 와 같게)
 
 
 def xcheck_items(res, i, fl, T, walls):
@@ -175,7 +175,7 @@ def xcheck_items(res, i, fl, T, walls):
     X = (res.get('xcheck') or {}).get(str(i))
     if not X or 'error' in X: return []
     try:
-        from firebim.xcheck import CFG
+        from fire3dbeam.xcheck import CFG
         thr = CFG.get('item_p', XC_ITEM_P)
     except Exception:
         thr = XC_ITEM_P
@@ -213,7 +213,7 @@ def xcheck_items(res, i, fl, T, walls):
     for d in X.get('doors_model', []):
         q = 1 - d['p']
         try:
-            from firebim.xcheck import CFG as _C; added = q >= _C['door_p']
+            from fire3dbeam.xcheck import CFG as _C; added = q >= _C['door_p']
         except Exception: added = q >= 0.6
         if not added and q < thr: continue
         px, py = g2p(T, d['x'], d['y']); hw = d['w'] * T[0] / 2

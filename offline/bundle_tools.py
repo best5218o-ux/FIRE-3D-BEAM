@@ -9,7 +9,7 @@
   python bundle_tools.py imports APP WHEELHOUSE                    실행 코드 import ↔ wheelhouse 휠 대조(빠진 라이브러리 검사)"""
 import datetime, glob, os, re, shutil, sys, zipfile
 
-RUNTIME_DIRS = ('firebim', 'review')
+RUNTIME_DIRS = ('fire3dbeam', 'review')
 EVALR = ('__init__.py', 'score.py', 'card_eval.py', 'evac_score.py', 'xcheck_eval.py')        # 채점.bat(run_all.py) 에 필요한 것만
 MODELS = ['str_seg.onnx', 'str_seg.json', 'spa_seg.onnx', 'spa_seg.json', 'spa_seg_v3.onnx', 'spa_seg_v3.json']   # STR = GPU 모델, SPA v3.1(+계단 전용 v3)
 MODELS_V3 = ['str_seg_v3.onnx', 'str_seg_v3.json']
@@ -97,7 +97,7 @@ def tess_prune(d):
 def manifest(out, pyfull, tess):
     wh = sorted(os.path.basename(p) for p in glob.glob(os.path.join(out, 'wheelhouse', '*.whl')))
     te = os.path.exists(os.path.join(out, 'tesseract', 'tesseract.exe'))
-    L = [f'FireBIM 오프라인 설치판 구성 — 만든 날 {datetime.date.today().isoformat()}',
+    L = [f'FIRE-3D BEAM 오프라인 설치판 구성 — 만든 날 {datetime.date.today().isoformat()}',
          f'Python {pyfull} (embeddable, Windows x64)' if os.path.isdir(os.path.join(out, 'python')) else 'Python: 동봉 안 됨(PC 의 Python 3.11 사용)',
          f"Tesseract {tess} (휴대용)" if te else 'Tesseract: 동봉 안 됨(installers/ 또는 PC 설치본)', 'Tesseract 언어팩: tessdata_fast kor, eng',
          'AI 모델: ' + ', '.join(sorted(os.listdir(os.path.join(out, 'app', 'models')))),

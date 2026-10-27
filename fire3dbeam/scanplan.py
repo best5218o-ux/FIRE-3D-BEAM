@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """스캔본(글자층 없는 그림 PDF) 정보카드에서 잘라낸 평면도 — 규칙 경로(vision·geom) 앞 전처리와 축척(치수) 판독 보강.
 pipeline.run 이 평면도 출처가 OCR(그림 `source='ocr'`)일 때만 부른다 → 글자층 카드 결과는 바이트 단위로 그대로.
-끄기: FIREBIM_SCANPLAN=0 (스캔본도 예전 규칙 경로 그대로)."""
+끄기: FIRE3DBEAM_SCANPLAN=0 (스캔본도 예전 규칙 경로 그대로)."""
 import os
 os.environ.setdefault('OMP_THREAD_LIMIT', '1')     # tesseract OpenMP 끔: 2코어 공유 시 스레드 회전 대기로 4~5배 느려짐(판독 결과 동일, 2026-10-03)
 import numpy as np, cv2
 
-ENABLED = os.environ.get('FIREBIM_SCANPLAN', '1') != '0'
+ENABLED = os.environ.get('FIRE3DBEAM_SCANPLAN', '1') != '0'
 GRID = os.environ.get('SCANPLAN_GRID', '1') != '0'
 DIMS = os.environ.get('SCANPLAN_DIMS', '1') != '0'
 GRIDWALL = os.environ.get('SCANPLAN_GRIDWALL', '0') != '0'       # 그리드선 잔여 지우기: dev 에서 벽 재현율·진입구 손해(칸막이벽이 그리드선 위) → 기본 끔
@@ -15,10 +15,10 @@ MODEL_MAX_PX = float(os.environ.get('SCANPLAN_MODEL_MAX_PX', '2e7'))   # 모델 
 
 
 def model_default():
-    """스캔본 카드의 모델 경로 기본값: FIREBIM_SCAN_MODEL(기본 1) 이고 STR 모델 파일·onnxruntime 이 있으면 True"""
-    if os.environ.get('FIREBIM_SCAN_MODEL', '1') == '0' or not ENABLED: return False
+    """스캔본 카드의 모델 경로 기본값: FIRE3DBEAM_SCAN_MODEL(기본 1) 이고 STR 모델 파일·onnxruntime 이 있으면 True"""
+    if os.environ.get('FIRE3DBEAM_SCAN_MODEL', '1') == '0' or not ENABLED: return False
     try:
-        from firebim import str_seg
+        from fire3dbeam import str_seg
         if not os.path.exists(str_seg.MODEL): return False
         import onnxruntime  # noqa: F401
         return True
@@ -59,14 +59,14 @@ def grid_lines(M, shape, seg=0.05, cover=0.4):
 
 # ───────────────────────────── 전처리
 def blue_loose(img):
-    from firebim.vision import blue_loose as bl
+    from fire3dbeam.vision import blue_loose as bl
     return bl(img)
 
 
 def _invgamma(img):
     """그림 자르기(card_ocr.fig_crop)가 무채색 화소에 건 감마(기본 1.5 — 옅어진 가는 선 살리기) 되돌리기 → float32.
     감마 영상에서는 회색 그리드선(원본 150)이 '진한 선'(lum<125)으로 바뀌어 벽으로 잡혔다."""
-    from firebim.card_ocr import FIG_GAMMA, FIG_NORM
+    from fire3dbeam.card_ocr import FIG_GAMMA, FIG_NORM
     c = img.astype(np.float32)
     if FIG_GAMMA and FIG_NORM:
         sat = c.max(2) - c.min(2)
@@ -172,7 +172,7 @@ def _parse_mm(t):
 
 def _stack_read(tiles, psm):
     """창 조각들을 세로로 쌓아(사이 흰 띠) tesseract 1회 → 조각별 글자. 같은 크기 글자 줄이 여럿 있어야 작은 흐린 숫자를 더 잘 읽는다"""
-    from firebim.vision import ocr_tsv
+    from fire3dbeam.vision import ocr_tsv
     Wm = max(t.shape[1] for t in tiles) + 40
     parts, spans, y = [np.full((20, Wm), 255, np.uint8)], [], 20
     for t in tiles:
@@ -276,7 +276,7 @@ def fuse_scale(plans, prior_tol=FUSE_TOL):
     평면도마다 축척 = 등간격 그리드 간격(최소제곱) ÷ 경간 → 없으면 이 도면 창들의 경간 px 중앙값 ÷ 경간 → 없으면 면적 축척에 가까운 그리드 간격.
     정보카드 면적 축척(p['_sa'])과 prior_tol 배 넘게 어긋나면 바꾸지 않음. 도면 자체가 다른 값을 뚜렷이(창 2개 이상·건물 1위 표의 절반 이상) 읽었으면 그 값 유지
     (지하 주차장 경간이 다른 건물 등 — 첫 자리 오독 8→6·4 한두 창은 건물 합의가 이김)."""
-    from firebim.pipeline import grid_pitch
+    from fire3dbeam.pipeline import grid_pitch
     sc = [p for p in plans if p.get('scan')]
     tally = {}
     for p in sc:
@@ -347,7 +347,7 @@ def _grid_runs(lum, xs, axis, half=8, ink=GRID_INK):
 def wall_mask(M, s, vlines, hlines, exclude=None):
     """geom.wall_mask(CAD 출력 도면용) 뒤에, 흐림으로 번진 그리드선 잔여(선 양 끝과 같은 폭·밝기의 잉크 줄)를 지운다. 그리드선 위 벽(더 넓거나 짙은 잉크)은 남김.
     기본 꺼짐(SCANPLAN_GRIDWALL=1 로 켬): 가상 도면은 칸막이벽(0.15 m 회색)이 그리드선 위에 있고 스캔 흐림 뒤 그리드선과 구별이 안 돼 dev 벽 재현율 .84→.78·진입구 34→24/36"""
-    from firebim import geom
+    from fire3dbeam import geom
     m = geom.wall_mask(M, s, vlines, hlines, exclude)
     lum = M['lum']
     for xi, rows, L, R in _grid_runs(lum, vlines, 0):

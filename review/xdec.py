@@ -14,7 +14,7 @@
 """
 import math
 
-EXT_M = 0.4          # 추가 벽 양끝 연장(이웃 벽과 겹쳐 가짜 틈 방지) = firebim.xcheck CFG['tol_model']
+EXT_M = 0.4          # 추가 벽 양끝 연장(이웃 벽과 겹쳐 가짜 틈 방지) = fire3dbeam.xcheck CFG['tol_model']
 SNAP_M = 0.3         # 추가 벽 중심선을 같은 선의 기존 벽에 맞추는 거리
 TOL_RULE_M = 0.1     # 규칙 벽 조각 자르기: 같은 선 허용
 TOL_FILL_M = 0.3     # 보충 벽 자르기: 보충 시 중심선을 이웃 벽에 맞췄으므로 넓게

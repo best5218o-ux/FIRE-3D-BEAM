@@ -3,7 +3,7 @@
 
 정답 외곽: 라벨 다각형(벽∪창∪문)을 평가 해상도(원본 300dpi 의 1/4 = Q, 75dpi)로 그려
   ≈1.3 m 팽창으로 묶은 덩어리(= 라벨된 평면 하나)마다 → 작은 닫기(k=3,5,9,15 px 중 채움이 안정되는 가장 작은 값) → 바깥과 안 이어진 곳 채움.
-예측 외곽: firebim.realplan.process_gray(원본 크기로 되돌린 영상, 모델은 124dpi 축소본을 그대로 src_dpi 로)
+예측 외곽: fire3dbeam.realplan.process_gray(원본 크기로 되돌린 영상, 모델은 124dpi 축소본을 그대로 src_dpi 로)
   의 'plan' 영역 외곽 다각형을 Q 해상도로 채움.
 채점(정답 덩어리마다): 정답과 겹치는 예측 성분 전체(치수 띠·상세도로 번진 부분 포함) − 다른 정답 덩어리(라벨된 다른 평면) → IoU, 재현(=|P∩G|/|G|), 정밀(|P∩G|/|P|).
   예측이 없으면 IoU 0. 라벨 안 된 평면(한 시트에 일부만 라벨)은 정답 덩어리와 겹치지 않으면 채점하지 않음.
@@ -78,12 +78,12 @@ def gt_clusters(it, shape_q, gq=None):
     return out
 
 
-MASS = os.environ.get('FP_MASS', '0') == '1'      # (2026-10-03) 예측 외곽 = firebim/realcard.mass(STR 라벨 → 건물 덩어리·마당형 벗기기) — 정보카드 실제 도면 경로의 외곽
+MASS = os.environ.get('FP_MASS', '0') == '1'      # (2026-10-03) 예측 외곽 = fire3dbeam/realcard.mass(STR 라벨 → 건물 덩어리·마당형 벗기기) — 정보카드 실제 도면 경로의 외곽
 
 
 def mass_outline(ml, r, Hq, Wq):
     """realplan 'plan' 영역 → realcard.mass 외곽(Q 해상도 마스크). ml = 시트 1/2 해상도 STR 라벨, r = 영역 결과"""
-    from firebim import realcard as RC, str_seg as SS
+    from fire3dbeam import realcard as RC, str_seg as SS
     x0, y0, x1, y1 = [v * 2 for v in r['box_Q']]                     # 1/4 → 1/2
     sub = ml[max(0, y0 - 20):y1 + 20, max(0, x0 - 20):x1 + 20]
     ox, oy = max(0, x0 - 20), max(0, y0 - 20)
@@ -103,9 +103,9 @@ def mass_outline(ml, r, Hq, Wq):
 
 
 def predict(it, model=True, want_dims=True):
-    from firebim import realplan as R
+    from fire3dbeam import realplan as R
     if model and R._SEG is None:
-        from firebim import str_seg as SS
+        from fire3dbeam import str_seg as SS
         R._SEG = SS.StrSeg(threads=1)
     g = cv2.imread(os.path.join(D.IMG_DIR, it['fn']), cv2.IMREAD_GRAYSCALE)
     gF = cv2.resize(g, (it['w'], it['h']), interpolation=cv2.INTER_CUBIC)          # realplan 은 300dpi 원본 기준

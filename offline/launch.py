@@ -13,8 +13,8 @@
 import glob, os, re, shutil, subprocess, sys, tempfile, time, traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-APP = os.path.dirname(HERE)                                   # 코드 루트(firebim, review, …)
-PKG = os.environ.get('FIREBIM_HOME') or APP                   # 설치 폴더(python\, tesseract\, app\ …) — .bat 이 지정
+APP = os.path.dirname(HERE)                                   # 코드 루트(fire3dbeam, review, …)
+PKG = os.environ.get('FIRE3DBEAM_HOME') or APP                   # 설치 폴더(python\, tesseract\, app\ …) — .bat 이 지정
 sys.path.insert(0, APP)
 IS_WIN = os.name == 'nt'
 LABELS = os.path.join(PKG, '학습데이터')
@@ -34,15 +34,15 @@ def is_ascii(s):
 
 
 def block_network():
-    """실행 중 외부 접속 차단(오프라인 원칙을 코드로 보장). 같은 PC 안(127.0.0.1) 연결만 허용. FIREBIM_ALLOW_NET=1 이면 끔(개발용)."""
-    if os.environ.get('FIREBIM_ALLOW_NET') == '1': return
+    """실행 중 외부 접속 차단(오프라인 원칙을 코드로 보장). 같은 PC 안(127.0.0.1) 연결만 허용. FIRE3DBEAM_ALLOW_NET=1 이면 끔(개발용)."""
+    if os.environ.get('FIRE3DBEAM_ALLOW_NET') == '1': return
     import socket
     LOCAL = ('127.0.0.1', '::1', 'localhost', '')
     def _host(addr): return addr[0] if isinstance(addr, tuple) else addr
     def guard(what, host):
         if isinstance(host, (bytes, bytearray)): host = host.decode('ascii', 'replace')
         if host not in LOCAL and not str(host).startswith('127.'):
-            raise OSError(f'[FireBIM] 네트워크 차단: {what} {host} — 이 프로그램은 인터넷을 쓰지 않습니다')
+            raise OSError(f'[FIRE-3D BEAM] 네트워크 차단: {what} {host} — 이 프로그램은 인터넷을 쓰지 않습니다')
     _connect, _gai = socket.socket.connect, socket.getaddrinfo
     def connect(self, addr):
         if self.family in (socket.AF_INET, socket.AF_INET6): guard('connect', _host(addr))
@@ -54,14 +54,14 @@ def block_network():
 
 def setup_env():
     """Tesseract 경로·언어팩, ASCII 임시폴더, 오프라인 뷰어 번들"""
-    os.environ['FIREBIM_PREBUILT'] = '1'
+    os.environ['FIRE3DBEAM_PREBUILT'] = '1'
     os.environ.setdefault('PYTHONUTF8', '1')
     # 임시 폴더: OpenCV·Tesseract 가 한글 경로를 못 여는 경우 대비
     tmp = tempfile.gettempdir()
     if not is_ascii(tmp):
-        tmp = os.path.join(os.environ.get('PUBLIC', r'C:\Users\Public'), 'FireBIM_tmp')
+        tmp = os.path.join(os.environ.get('PUBLIC', r'C:\Users\Public'), 'FIRE-3D-BEAM_tmp')
     os.makedirs(tmp, exist_ok=True)
-    os.environ['TMP'] = os.environ['TEMP'] = os.environ['FIREBIM_TMP'] = tmp; tempfile.tempdir = tmp
+    os.environ['TMP'] = os.environ['TEMP'] = os.environ['FIRE3DBEAM_TMP'] = tmp; tempfile.tempdir = tmp
     # Tesseract: 동봉(tesseract\) → PATH → 기본 설치 위치
     cands = [os.path.join(PKG, 'tesseract', 'tesseract.exe' if IS_WIN else 'tesseract')]
     w = shutil.which('tesseract');  cands += [w] if w else []
@@ -85,7 +85,7 @@ def setup_env():
 
 
 def open_path(p):
-    if os.environ.get('FIREBIM_NO_OPEN') == '1': return
+    if os.environ.get('FIRE3DBEAM_NO_OPEN') == '1': return
     if IS_WIN:
         try: os.startfile(p)          # 탐색기/기본 브라우저
         except OSError as e: say('  (자동으로 열지 못함:', e, ')')
@@ -102,7 +102,7 @@ def log_error(where):
     if home and len(home) > 3: tb = tb.replace(home, '%USERPROFILE%')
     tb = re.sub(r"[^\\/'\"\s]+\.(?:pdf|PDF|png|jpg|jpeg|tif|tiff|docx|hwp|hwpx)", '<입력파일>', tb)
     with open(fn, 'w', encoding='utf-8') as f:
-        f.write(f'FireBIM {where} 오류 · Python {sys.version.split()[0]} · {sys.platform}\n{tb}')
+        f.write(f'FIRE-3D BEAM {where} 오류 · Python {sys.version.split()[0]} · {sys.platform}\n{tb}')
     say(f'  ✗ 오류: {type(sys.exc_info()[1]).__name__}\n    자세한 내용(개인정보 없음): {fn}')
 
 
@@ -150,7 +150,7 @@ def cmd_check():
     say(f"  {'✓' if os.path.exists(js) else '✗'} 3D 뷰어 번들(viewer/dist/app.js)"); ok &= os.path.exists(js)
     so = soffice_exe()
     say(f"  · (선택) LibreOffice: {so if so else '없음 — 정보카드는 PDF로 넣으면 됨(docx/hwp 는 한글·Word 에서 PDF로 저장)'}")
-    if not is_ascii(PKG): say(f'  ! 설치 폴더에 한글/특수문자가 있음({PKG}) — 동작은 하도록 했지만 C:\\FireBIM 같은 영문 경로를 권장')
+    if not is_ascii(PKG): say(f'  ! 설치 폴더에 한글/특수문자가 있음({PKG}) — 동작은 하도록 했지만 C:\\FIRE-3D BEAM 같은 영문 경로를 권장')
     say('■ 결과:', '정상' if ok else '문제 있음'); return 0 if ok else 1
 
 
@@ -287,14 +287,14 @@ def cmd_selftest(args=()):
     try:
         cp = os.path.join(d, os.path.basename(files['result']).replace('_결과.json', '_corrections.json'))
         nx = synthetic_corrections(files['result'], res['source']['pdf'], cp)
-        LABELS, keep, no_open = os.path.join(out, '_학습데이터_시험'), LABELS, os.environ.get('FIREBIM_NO_OPEN')
+        LABELS, keep, no_open = os.path.join(out, '_학습데이터_시험'), LABELS, os.environ.get('FIRE3DBEAM_NO_OPEN')
         SCOREBOARD, keep_sb = os.path.join(out, '채점현황_시험.html'), SCOREBOARD          # 실제 채점현황에 시험 검수가 섞이지 않게
-        os.environ['FIREBIM_NO_OPEN'] = '1'                  # 시험 중에는 브라우저 창을 띄우지 않음
+        os.environ['FIRE3DBEAM_NO_OPEN'] = '1'                  # 시험 중에는 브라우저 창을 띄우지 않음
         try: rc = cmd_review([cp])
         finally:
             LABELS, SCOREBOARD = keep, keep_sb
-            if no_open is None: os.environ.pop('FIREBIM_NO_OPEN', None)
-            else: os.environ['FIREBIM_NO_OPEN'] = no_open
+            if no_open is None: os.environ.pop('FIRE3DBEAM_NO_OPEN', None)
+            else: os.environ['FIRE3DBEAM_NO_OPEN'] = no_open
         st = os.path.basename(files['result']).replace('_결과.json', '')
         outs = [os.path.join(d, st + '_검수반영' + x) for x in ('.html', '.ifc', '_활동계획.html', '.json')]
         lab = glob.glob(os.path.join(out, '_학습데이터_시험', '**', '*.json'), recursive=True)
@@ -364,7 +364,7 @@ def cmd_convert(args):
     setup_env()
     from review.convert import convert
     model = None
-    if '--rules' in args or os.environ.get('FIREBIM_MODEL', '').lower() in ('0', 'false', 'off', 'no'): model = False
+    if '--rules' in args or os.environ.get('FIRE3DBEAM_MODEL', '').lower() in ('0', 'false', 'off', 'no'): model = False
     if '--model' in args: model = True
     out = None
     if '--out' in args:
@@ -449,7 +449,7 @@ def cmd_score(args):
     n = len(glob.glob(os.path.join(APP, 'data', '*', 'card.pdf')))
     if n >= 3 and '--no-run' not in args:
         say(f'■ 가상 건물 {n}동 자동 변환·채점 (수 분 걸림)')
-        env = dict(os.environ); env.pop('FIREBIM_MODEL', None)
+        env = dict(os.environ); env.pop('FIRE3DBEAM_MODEL', None)
         env.setdefault('WORKERS', str(max(1, min(4, (os.cpu_count() or 2) // 2))))       # 사무용 PC 메모리 보호
         r = subprocess.run([sys.executable, '-X', 'utf8', 'run_all.py', str(n // 3)], cwd=APP, env=env)
         if r.returncode: say('  ✗ 채점 실행 오류'); return 1

@@ -3,14 +3,14 @@
 
 CAD 에서 내보낸 벡터 PDF(나라장터 첨부 도면 등)는 실명·창호 기호(AW·ASD …)·그리드 이름(X1·A)·'13인승 E/V'·UP/DN 이 글자로 들어 있다.
 review/attach.py 가 도면 쪽을 그림으로 그려 정보카드에 붙일 때, 그 쪽의 글자 줄을 잘라낸 그림 좌표(px)로 옮겨
-합본 PDF 에 내장 파일(firebim_text.json, 캡션별)로 함께 넣는다 → pipeline 이 평면도 rp['text'] 로 넘기고
-firebim/realcard.py 는 OCR(실명·창호 태그·그리드 버블) 대신 이 글자를 쓴다(빠르고 정확). 글자층 없는 그림 도면은 예전처럼 OCR.
-끄기: FIREBIM_PDF_TEXT=0
+합본 PDF 에 내장 파일(fire3dbeam_text.json, 캡션별)로 함께 넣는다 → pipeline 이 평면도 rp['text'] 로 넘기고
+fire3dbeam/realcard.py 는 OCR(실명·창호 태그·그리드 버블) 대신 이 글자를 쓴다(빠르고 정확). 글자층 없는 그림 도면은 예전처럼 OCR.
+끄기: FIRE3DBEAM_PDF_TEXT=0
 """
 import json, os, re, unicodedata
 
-ENABLED = os.environ.get('FIREBIM_PDF_TEXT', '1') != '0'
-EMB_NAME = 'firebim_text.json'
+ENABLED = os.environ.get('FIRE3DBEAM_PDF_TEXT', '1') != '0'
+EMB_NAME = 'fire3dbeam_text.json'
 MIN_LINES = 12                      # 이보다 적으면 글자층 없음으로 봄(글자를 선으로 바꾼 도면)
 
 
@@ -100,7 +100,7 @@ def embed(doc, mapping):
         if EMB_NAME in (doc.embfile_names() or []): doc.embfile_del(EMB_NAME)
     except Exception:
         pass
-    doc.embfile_add(EMB_NAME, data, filename=EMB_NAME, desc='FireBIM 도면 글자층(평면도 그림 좌표)')
+    doc.embfile_add(EMB_NAME, data, filename=EMB_NAME, desc='FIRE-3D BEAM 도면 글자층(평면도 그림 좌표)')
 
 
 def load(doc):

@@ -5,7 +5,7 @@ import numpy as np, cv2
 from PIL import Image
 from shapely.geometry import Polygon, Point, box
 from shapely.ops import unary_union
-from firebim.card import level_of
+from fire3dbeam.card import level_of
 
 H_FLOOR = 4.6
 SLAB = 0.3
@@ -92,7 +92,7 @@ def build(res, plans=None, name_hint=None):
         F = res['floors'][fid]
         fp = (res.get('_fp') or {}).get(fid)
         if fp is None:
-            from firebim.geom import footprint_from_walls
+            from fire3dbeam.geom import footprint_from_walls
             fp = footprint_from_walls(F['walls'])
         fps[fid] = fp
     ground = '1F' if '1F' in fids else fids[0]
@@ -148,7 +148,7 @@ def build(res, plans=None, name_hint=None):
                                  src='검수자 추가(검수 화면)' if E.get('review') == 'added' else EV_NOTE.get(E.get('cert'), '승강기 표기 층간 반복(자동)'),
                                  **({'cert': E['cert']} if E.get('cert') else {})))
     # 확인사항(교차검증)
-    from firebim.flagtext import TITLE as _TT, explain as _explain0
+    from fire3dbeam.flagtext import TITLE as _TT, explain as _explain0
     def _explain(f):
         try: return _explain0(f)
         except Exception: return None, None
@@ -169,7 +169,7 @@ def build(res, plans=None, name_hint=None):
             x = f"채택 축척 {f['s']} px/m ({f['src']}) · 이 층 근거별 값: " + ', '.join(f"{c['src']} {c['s']}" for c in f.get('cands', []))
         else: d = f"{ko_name(f.get('floor', ''))}: 기호 부족으로 그리드선만으로 위치를 맞춤 → 확인 필요"
         x = x if f['kind'] == 'scale_disagree' else None
-        msg, det = (f.get('msg'), f.get('detail')) if f.get('msg') else _explain(f)   # 쉬운 말(firebim/flagtext.py) — JSON 에 없으면 그릴 때 만듦 · 기술 정보는 상세(x)로 접힘
+        msg, det = (f.get('msg'), f.get('detail')) if f.get('msg') else _explain(f)   # 쉬운 말(fire3dbeam/flagtext.py) — JSON 에 없으면 그릴 때 만듦 · 기술 정보는 상세(x)로 접힘
         if msg: d = msg
         if det and msg: x = det if not x else f"{det} · {x}"
         D['issues'].append(dict(lv='high' if f['kind'] in ('stair_count', 'align', 'scale_disagree') else 'mid', t=kindtxt.get(f['kind'], _TT.get(f['kind'], f['kind'])), d=d, cat='카드↔도면',
@@ -177,15 +177,15 @@ def build(res, plans=None, name_hint=None):
     # 기능 12·18·24 데이터(뷰어용)
     for k in ('zones', 'daejang', 'site'):
         if res.get(k) and 'error' not in res[k]: D[k] = res[k]
-    if res.get('fac'):                                   # 소방시설 전체 목록 + 위치 확실성(firebim/fac.py)
-        from firebim.fac_catalog import CATS
+    if res.get('fac'):                                   # 소방시설 전체 목록 + 위치 확실성(fire3dbeam/fac.py)
+        from fire3dbeam.fac_catalog import CATS
         D['fac'] = dict(res['fac'], cats=CATS)
     for f in res['flags']:
         if f['kind'] == 'fac_count':
             D['issues'].append(dict(lv='mid', t='소방시설 수량 불일치(정보카드 ↔ 도면 기호)', cat='소방시설',
                                     d=f"{ko_name(f['floor'])} {f['name']}: 정보카드 {f['card']}개 / 도면 기호 {f['drawing']}개"))
-    if res.get('evac') and 'error' not in res['evac']:          # 대피로·진입로(firebim/evac.py) → 뷰어 데이터 + 확인사항
-        from firebim.evac import to_viewer, issue as evac_issue
+    if res.get('evac') and 'error' not in res['evac']:          # 대피로·진입로(fire3dbeam/evac.py) → 뷰어 데이터 + 확인사항
+        from fire3dbeam.evac import to_viewer, issue as evac_issue
         D['evac'] = to_viewer(res['evac'])
         D['issues'] += [i for i in (evac_issue(f, ko_name) for f in res['evac'].get('flags', [])) if i]
     st = card.get('stairs') or {}; ev = card.get('elev') or {}
@@ -195,9 +195,9 @@ def build(res, plans=None, name_hint=None):
                                  '승강기_일반': ev.get('normal', 0), '승강기_비상용': ev.get('emergency', 0)},
                          source='소방활동 정보카드(가상) 자동 변환', auto=dict(align=[F['align'] for F in res['floors'].values()]))
     D['building']['card'] = card_panel(card)          # 표준양식 ①~⑨(관계인 성명·연락처는 opt-in 때만)
-    # 활동계획 기준값(sop.py SEARCH·ACT·TRAIN) + 실마다 인명검색 용도 범주(firebim/search.py) → 뷰어 search.js·훈련 채점
-    from firebim.search import annotate
-    from firebim.sop import ACT, TRAIN, SIM
+    # 활동계획 기준값(sop.py SEARCH·ACT·TRAIN) + 실마다 인명검색 용도 범주(fire3dbeam/search.py) → 뷰어 search.js·훈련 채점
+    from fire3dbeam.search import annotate
+    from fire3dbeam.sop import ACT, TRAIN, SIM
     annotate(D); D['sop_act'] = ACT; D['sop_train'] = TRAIN; D['sop_sim'] = SIM
     return D, BIM
 
@@ -218,14 +218,14 @@ def card_panel(card):
 
 def ext_issue(f):
     """기능 12(경계구역)·18(건축물대장)·24(부지) 플래그 → 확인사항 문구. 해당 없으면 None"""
-    from firebim.daejang import KIND_TXT, issue_text
+    from fire3dbeam.daejang import KIND_TXT, issue_text
     k = f['kind']
     if k == 'hazmat':                  # 표준양식 ⑨ 위험물 시설 등 → 진입 전 확인
         tip = {'위험물시설': '위험물 저장·취급 — 진입 전 위치·수량 확인, 위험물안전관리자 연락', '가스취급현황': '가스 취급 — 진입 전 가스 차단(밸브) 확인',
                '특수가연물': '특수가연물 적재 — 급격한 연소 확대·붕괴 위험, 진입 전 확인', '기타': '기타 위험 요인 — 진입 전 확인'}.get(f.get('cls'), '진입 전 확인')
         return dict(lv='high' if f.get('cls') in ('위험물시설', '가스취급현황') else 'mid', t=f"{f.get('cls')} 있음(정보카드 ⑨) → 진입 전 확인",
                     d=' · '.join(x for x in (f.get('name'), f.get('item'), f.get('qty')) if x) + f" — {tip}", cat='위험물')
-    if k == 'card_ocr':                # 스캔본 정보카드 OCR — 신뢰도 낮은 항목(firebim/card_ocr.py)
+    if k == 'card_ocr':                # 스캔본 정보카드 OCR — 신뢰도 낮은 항목(fire3dbeam/card_ocr.py)
         v = '(개인정보 — 값 표시 안 함)' if f.get('private') else (f"'{f.get('value')}'" if f.get('value') not in (None, '') else '(읽지 못함)')
         return dict(lv='mid', t='정보카드 OCR 확인(스캔본)', d=f"{f.get('field')}: {v} — OCR 신뢰도 {f.get('conf', 0) * 100:.0f}% → 원본 카드와 대조", cat='정보카드')
     if k == 'card_ocr_fail':
@@ -300,7 +300,7 @@ def export_ifc(D, BIM, path):
                                           '위험물_시설_등': ' / '.join(f"{h['구분']}: {h['시설명']} {h['품명']} {h['수량']}" for h in C.get('위험물') or []) or '없음',
                                           '관계인_역할': ', '.join(r['구분'] for r in C.get('관계인') or [] if r.get('기재') or r.get('성명')) or None,
                                           '개인정보': C.get('개인정보')})
-        if any(r.get('성명') or r.get('연락처') for r in C.get('관계인') or []):      # FIREBIM_INCLUDE_CONTACTS=1 일 때만 값이 있음
+        if any(r.get('성명') or r.get('연락처') for r in C.get('관계인') or []):      # FIRE3DBEAM_INCLUDE_CONTACTS=1 일 때만 값이 있음
             pset(bldg, 'Pset_관계인_내부용', {f"{r['구분']}": f"{r.get('성명') or ''} {r.get('연락처') or ''}".strip() for r in C['관계인']})
     styles = {}
     COL = dict(wall=(0.78, 0.78, 0.76), extwall=(0.55, 0.57, 0.62), slab=(0.62, 0.64, 0.68), door=(0.55, 0.38, 0.22), exit=(0.1, 0.75, 0.3),
@@ -395,7 +395,7 @@ def export_ifc(D, BIM, path):
     export_ifc_ext(F, api, D, BIM, storeys, bldg, site, product, boxrep, pset, lvl, body)
     export_ifc_fac(F, api, D, BIM, storeys, product, boxrep, pset, lvl)
     if D.get('evac'):
-        from firebim.evac import export_ifc_evac
+        from fire3dbeam.evac import export_ifc_evac
         export_ifc_evac(F, api, D, storeys, lvl, pset, H_FLOOR, SLAB)
     F.write(path)
     return path
@@ -461,9 +461,9 @@ CERT_KO = {'located': '위치확인(도면 기호)', 'estimated': '위치추정(
 
 def export_ifc_fac(F, api, D, BIM, storeys, product, boxrep, pset, lvl):
     """소방시설 → IFC: 위치 있는 것(located·estimated)은 분류표 IFC 형식 요소 + 작은 상자, 수량만(present)은 형상 없는 요소(층에 소속)
-    모든 요소에 Pset_FireBIM_소방시설(분류코드·법정명칭·대분류·중분류·위치확실성·출처·정보카드 원문/수량·추정반경·근거).
+    모든 요소에 Pset_FIRE-3D-BEAM_소방시설(분류코드·법정명칭·대분류·중분류·위치확실성·출처·정보카드 원문/수량·추정반경·근거).
     옥내소화전·수신기 위치(located)는 기존 설비 요소로 이미 나가므로 중복 생성하지 않음. 비상용승강기 추정은 기존 승강기 요소에 Pset."""
-    from firebim.fac_catalog import CATALOG
+    from fire3dbeam.fac_catalog import CATALOG
     FC = D.get('fac')
     if not FC: return
     COLK = {'소화설비': 'hose', '경보설비': 'panel', '피난구조설비': 'exit', '소화용수설비': 'ev', '소화활동설비': 'valve'}
@@ -486,7 +486,7 @@ def export_ifc_fac(F, api, D, BIM, storeys, product, boxrep, pset, lvl):
         props = {'분류코드': it['code'], '법정명칭': it['name'], '대분류': it['cat'], '중분류': it['group'], '위치확실성': cert, '위치확실성_설명': CERT_KO.get(cert),
                  '출처': ', '.join(it['src']), '정보카드원문': it['raw'], '정보카드수량': it['card'], '도면기호수': it['drawing'], '근거': it['note'] or None}
         props.update(extra or {})
-        pset(el, 'Pset_FireBIM_소방시설', props)
+        pset(el, 'Pset_FIRE-3D-BEAM_소방시설', props)
         return el
     for fid, items in FC['floors'].items():
         if fid not in storeys: continue
@@ -505,7 +505,7 @@ def export_ifc_fac(F, api, D, BIM, storeys, product, boxrep, pset, lvl):
                         b = E['box']
                         if abs((b[0] + b[2]) / 2 - q['x']) < 0.6 and abs((b[1] + b[3]) / 2 - q['y']) < 0.6 and fid in E['floors']:
                             g = E['gids'][E['floors'].index(fid)]
-                            pset(F.by_guid(g), 'Pset_FireBIM_소방시설', {'분류코드': 'EMEV', '법정명칭': '비상용승강기', '위치확실성': 'estimated',
+                            pset(F.by_guid(g), 'Pset_FIRE-3D-BEAM_소방시설', {'분류코드': 'EMEV', '법정명칭': '비상용승강기', '위치확실성': 'estimated',
                                                                     '근거': it['note'], '추정근거_승강기': q.get('why') or None, '후보': bool(q.get('alt'))}); q['gid'] = g
             else:
                 for k, q in enumerate(it['est']):
@@ -515,7 +515,7 @@ def export_ifc_fac(F, api, D, BIM, storeys, product, boxrep, pset, lvl):
             if it['present']:
                 el = mk(C, it, fid, f"{fid} {it['name']} (수량 {it['present']})", cert='present', extra={'수량': it['present'], '비고': '위치 정보 없음 — 정보카드 수량만'})
                 if el is not None: it['gid_present'] = el.GlobalId
-        if summ: pset(storeys[fid], 'Pset_FireBIM_층별소방시설', summ)
+        if summ: pset(storeys[fid], 'Pset_FIRE-3D-BEAM_층별소방시설', summ)
 
 
 def LineStr(w):

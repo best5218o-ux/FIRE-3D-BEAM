@@ -31,7 +31,7 @@ def out_dir_for(pdf, out=None):
 
 def model_available():
     """STR 분할 모델 교차검증을 쓸 수 있나(모델 파일 + onnxruntime) → (bool, 이유)"""
-    from firebim import str_seg
+    from fire3dbeam import str_seg
     if not os.path.exists(str_seg.MODEL): return False, f'모델 파일 없음({os.path.basename(str_seg.MODEL)})'
     try:
         import onnxruntime  # noqa: F401
@@ -42,7 +42,7 @@ def model_available():
 
 # ───────── 개인정보(관계인 성명·연락처) 유출 검사 — 결과 파일 글자 전체에서 원문 문자열 찾기
 def contact_strings(pdf):
-    from firebim.card import parse_card
+    from fire3dbeam.card import parse_card
     info, _ = parse_card(pdf)
     rows = list(info.get('관계인') or []) + [r for d in info.get('동목록') or [] for r in (d.get('관계인') or [])]
     out = set()
@@ -91,7 +91,7 @@ def aux_inputs(pdf):
 
 def convert(pdf, out=None, log=print, model=None, extras=None):
     """model: True/False/None(None = 모델 파일·onnxruntime 있으면 사용). extras: 별도 평면도·진압작전도 파일 목록"""
-    from firebim.pipeline import run
+    from fire3dbeam.pipeline import run
     from review.make import make as make_review
     from review import plan_sheet
     t0 = time.time(); pdf = os.path.abspath(pdf)
@@ -137,8 +137,8 @@ def convert(pdf, out=None, log=print, model=None, extras=None):
     log('[4/5] 검수화면 생성')
     make_review(P['result'], pdf=src_pdf, out_html=P['review'], res=clean, imgs=imgs)
     n, hits = privacy_scan(pdf, [P['result'], P['html'], P['ifc'], P['plan'], P['review']])
-    if os.environ.get('FIREBIM_INCLUDE_CONTACTS', '').lower() in ('1', 'true', 'on', 'yes'):
-        log(f'      개인정보: 관계인 연락처 포함 모드(FIREBIM_INCLUDE_CONTACTS=1) — 결과 파일 취급 주의')
+    if os.environ.get('FIRE3DBEAM_INCLUDE_CONTACTS', '').lower() in ('1', 'true', 'on', 'yes'):
+        log(f'      개인정보: 관계인 연락처 포함 모드(FIRE3DBEAM_INCLUDE_CONTACTS=1) — 결과 파일 취급 주의')
     elif hits:
         log(f'      ✗ 개인정보 검사: 관계인 성명·연락처가 결과에 남음 {hits} — 결과를 쓰지 말고 담당자에게 알리세요')
     else:

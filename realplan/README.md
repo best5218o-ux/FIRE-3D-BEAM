@@ -6,7 +6,7 @@ AI허브 「건축 도면 데이터」 원천 PNG(A3@300dpi 흑백, 4963×3509)�
 
 ## 사용
 ```
-python -m firebim.realplan 도면.png 출력폴더                      # 시트 1장: 배치·영역별 겹침 그림 + 요약
+python -m fire3dbeam.realplan 도면.png 출력폴더                      # 시트 1장: 배치·영역별 겹침 그림 + 요약
 python -m evalr.realplan_eval ./aihub/obj2 --split dev   # 개발 세트(파일명 정렬, 5번째마다 제외) → out_real/summary_dev.json
 python -m evalr.realplan_eval ./aihub/obj2 --split hold  # 보류 세트(5번째마다) — 임계값 조정에 쓰지 않음
   옵션: --limit N(무작위 표본) --overlays N(겹침 그림 시트 수) --workers 2 --files a.png b.png
@@ -14,7 +14,7 @@ python -m evalr.realplan_eval ./aihub/obj2 --split hold  # 보류 세트(5번째
 출력: `out_real/summary_<split>.json`(+ 마지막 실행 = `summary.json`), `results_<split>.jsonl`(시트·영역별), `overlays/*_sheet.png`, `*_rK.png`.
 수동 판정: `evalr/realplan_manual.json` — 있으면 summary 의 `manual` 에 자동 지표와의 일치율 기록.
 
-## 방법 (firebim/realplan.py)
+## 방법 (fire3dbeam/realplan.py)
 해상도: 원본 F(300dpi) / 해석 H=1/2(150dpi, **최소값 풀링** — 가는 선이 흐려지지 않음) / 배치 Q=1/4.
 1. **시트 배치** `sheet_layout`: 시트 길이 33% 이상 가는 직선 중 '평행 짝'이 없거나 가장자리에 있는 선 = 도곽·구획·그리드선 → 제거.
    긴 수평·수직선 밀집 = 도면 코어 → 떨어져 그린 치수 띠(가늘고 긴 코어)는 옆 큰 코어에 병합 → 약 30mm 안 잉크 덩어리(치수·그리드 번호) 흡수.
@@ -71,7 +71,7 @@ python -m evalr.realplan_eval ./aihub/obj2 --split hold  # 보류 세트(5번째
 
 ## 분할 모델 경로 (STR 라벨 학습, 2026-09-29)
 `process_sheet(path, model=True)` · `analyze(img, model=True)` · CLI `--model` · 평가 `evalr.realplan_eval ... --model`.
-벽 = `firebim/str_seg.py`(models/str_seg.onnx) 분할 벽, 외곽 닫기에는 창·문 영역도 더함, 영역별 `doors`/`windows` 출력. 배치·치수·축척·total_check 는 규칙 경로와 같음(규칙 경로 출력 불변).
+벽 = `fire3dbeam/str_seg.py`(models/str_seg.onnx) 분할 벽, 외곽 닫기에는 창·문 영역도 더함, 영역별 `doors`/`windows` 출력. 배치·치수·축척·total_check 는 규칙 경로와 같음(규칙 경로 출력 불변).
 같은 60장(obj2, seed 0): err_union ≤5% 35.5% → 50.0%, 중앙값 10.2% → 4.8%. 보류 STR 83장 벽 IoU .340 → .674.
 
 ## 축척·외곽 개선 + 외곽 직접 채점 (2026-09-30 오후) — 실제 도면 기본 경로 = 분할 모델

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""SPA(공간) 라벨로 소형 분할망 학습 → models/spa_seg.onnx (onnxruntime 전용 추론: firebim/spa_seg.py).
+"""SPA(공간) 라벨로 소형 분할망 학습 → models/spa_seg.onnx (onnxruntime 전용 추론: fire3dbeam/spa_seg.py).
 python -m evalr.spa_train prep [--workers 2]   # 개발 split 영상·라벨을 1/2 축척 npz 캐시로 (out/spa_cache/seg, SPA_SEG_CACHE 로 변경)
 python -m evalr.spa_train train --minutes 50  # CPU 1스레드 학습(시간 제한), 체크포인트 out/spa_cache/spa_seg.pt  (이전과 같은 기본값)
 python -m evalr.spa_train export              # → models/spa_seg.onnx (+ .json)
-GPU(Colab T4, colab/FireBIM_SPA_GPU학습.ipynb):
+GPU(Colab T4, colab/FIRE-3D-BEAM_SPA_GPU학습.ipynb):
 python -m evalr.spa_train train --device cuda --width 2.0 --bs 32 --workers 2 --minutes 120 --aug 1 --warmup 200 \
        --out <Drive>/spa_gpu/ckpt [--resume <Drive>/spa_gpu/ckpt/last.pt]
 python -m evalr.spa_train export --ckpt <..>/best.pt --onnx <..>/spa_seg_gpu.onnx
@@ -387,7 +387,7 @@ def export(ckpt=None, onnx_path=None, version=None):
     except ImportError:
         pass
     try:
-        from firebim.spa_seg import PARAM
+        from fire3dbeam.spa_seg import PARAM
         post = json.loads(json.dumps(PARAM, ensure_ascii=False))
     except Exception:
         post = None
@@ -396,7 +396,7 @@ def export(ckpt=None, onnx_path=None, version=None):
                 c=list(C), params=int(sum(p.numel() for p in net.parameters())), ckpt=os.path.basename(ckpt), step=ck.get('step'),
                 train_minutes=round(ck.get('elapsed', 0) / 60, 1) if ck.get('elapsed') else None, ntrain=ck.get('ntrain'),
                 dev_val=ck.get('val'), onnx_vs_torch_maxabs=err, size_mb=round(os.path.getsize(onnx_path) / 1e6, 2),
-                post=post, post_note='기록용 — 실제 적용값은 firebim/spa_seg.PARAM (이 json 에 "param" 이 있으면 그 위에 덮음)',
+                post=post, post_note='기록용 — 실제 적용값은 fire3dbeam/spa_seg.PARAM (이 json 에 "param" 이 있으면 그 위에 덮음)',
                 created=time.strftime('%Y-%m-%d %H:%M'))
     json.dump(meta, open(os.path.splitext(onnx_path)[0] + '.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(onnx_path, os.path.getsize(onnx_path), 'maxabs', err)
